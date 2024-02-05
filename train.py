@@ -17,7 +17,8 @@ import module
 # =                                   param                                    =
 # ==============================================================================
 
-py.arg('--dataset', default='horse2zebra')
+# py.arg('--dataset', default='CheXpert-v1.0-small')
+py.arg('--dataset', default='')
 py.arg('--datasets_dir', default='datasets')
 py.arg('--load_size', type=int, default=286)  # load image to this size
 py.arg('--crop_size', type=int, default=256)  # then crop to this size
