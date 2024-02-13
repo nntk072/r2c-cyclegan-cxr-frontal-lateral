@@ -11,7 +11,7 @@ import module
 # =                                   param                                    =
 # ==============================================================================
 
-py.arg('--experiment_dir')
+py.arg('--experiment_dir', default='output/')
 py.arg('--batch_size', type=int, default=32)
 test_args = py.args()
 args = py.args_from_yaml(py.join(test_args.experiment_dir, 'settings.yml'))

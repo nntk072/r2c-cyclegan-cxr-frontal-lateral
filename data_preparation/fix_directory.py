@@ -17,7 +17,7 @@ for folder in new_folder:
         shutil.rmtree(os.path.join(new_path, folder))
     os.makedirs(os.path.join(new_path, folder), exist_ok=True)
     
-# count = 0
+count = 0
 for i in range(len(old_folder)):
     old_path = os.path.join(path, old_folder[i])
     # Loop through the patient folder
@@ -35,7 +35,7 @@ for i in range(len(old_folder)):
                             shutil.copy(view_path, os.path.join(new_path, new_folder[0], patient + '_' + study + '_' + view[j] + '.jpg')) 
                         elif 'lateral' in view_path and 'train' in old_folder[i]:
                             shutil.copy(view_path, os.path.join(new_path, new_folder[1], patient + '_' + study + '_' + view[j] + '.jpg')) 
-                        elif 'frontal' in view_path and 'valid' in old_folder[i]:
+                        if 'frontal' in view_path and 'valid' in old_folder[i]:
                             shutil.copy(view_path, os.path.join(new_path, new_folder[2], patient + '_' + study + '_' + view[j] + '.jpg')) 
                         elif 'lateral' in view_path and 'valid' in old_folder[i]:
                             shutil.copy(view_path, os.path.join(new_path, new_folder[3], patient + '_' + study + '_' + view[j] + '.jpg'))
@@ -44,3 +44,24 @@ for i in range(len(old_folder)):
         # count += 1
         # if count > 100:
         #     break
+        
+
+# test_folder = ['validA', 'validB']
+
+# count = 0
+# # make the valid folder
+# for folder in test_folder:
+#     if os.path.exists(os.path.join(new_path, folder)):
+#         shutil.rmtree(os.path.join(new_path, folder))
+#     os.makedirs(os.path.join(new_path, folder), exist_ok=True)
+
+    
+#     # move 20% of trainA directory to validA, 20% of trainB directory to validB and end
+#     train_path = os.path.join(new_path, new_folder[count])
+#     valid_path = os.path.join(new_path, folder)
+#     files = os.listdir(train_path)
+#     for j in range(int(len(files)*0.2)):
+#         shutil.move(os.path.join(train_path, files[j]), os.path.join(valid_path, files[j]))
+#     count += 1
+        
+        

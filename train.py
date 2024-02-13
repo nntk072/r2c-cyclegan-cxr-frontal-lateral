@@ -23,15 +23,20 @@ py.arg('--datasets_dir', default='datasets')
 py.arg('--load_size', type=int, default=286)  # load image to this size
 py.arg('--crop_size', type=int, default=256)  # then crop to this size
 py.arg('--batch_size', type=int, default=1)
+# py.arg('--epochs', type=int, default=200)
 py.arg('--epochs', type=int, default=200)
 py.arg('--epoch_decay', type=int, default=100)  # epoch to start decaying learning rate
-py.arg('--lr', type=float, default=0.0002)
+# py.arg('--lr', type=float, default=0.0002)
+py.arg('--lr', type=float, default=0.002)
+# py.arg('--beta_1', type=float, default=0.5)
 py.arg('--beta_1', type=float, default=0.5)
 py.arg('--adversarial_loss_mode', default='lsgan', choices=['gan', 'hinge_v1', 'hinge_v2', 'lsgan', 'wgan'])
-py.arg('--gradient_penalty_mode', default='none', choices=['none', 'dragan', 'wgan-gp'])
+# py.arg('--gradient_penalty_mode', default='none', choices=['none', 'dragan', 'wgan-gp'])
+py.arg('--gradient_penalty_mode', default='wgan-gp', choices=['none', 'dragan', 'wgan-gp'])
 py.arg('--gradient_penalty_weight', type=float, default=10.0)
 py.arg('--cycle_loss_weight', type=float, default=10.0)
-py.arg('--identity_loss_weight', type=float, default=0.0)
+# py.arg('--identity_loss_weight', type=float, default=0.0)
+py.arg('--identity_loss_weight', type=float, default=5.0)
 py.arg('--pool_size', type=int, default=50)  # pool size to store fake samples
 args = py.args()
 
@@ -54,8 +59,8 @@ A_B_dataset, len_dataset = data.make_zip_dataset(A_img_paths, B_img_paths, args.
 A2B_pool = data.ItemPool(args.pool_size)
 B2A_pool = data.ItemPool(args.pool_size)
 
-A_img_paths_test = py.glob(py.join(args.datasets_dir, args.dataset, 'testA'), '*.jpg')
-B_img_paths_test = py.glob(py.join(args.datasets_dir, args.dataset, 'testB'), '*.jpg')
+A_img_paths_test = py.glob(py.join(args.datasets_dir, args.dataset, 'validA'), '*.jpg')
+B_img_paths_test = py.glob(py.join(args.datasets_dir, args.dataset, 'validB'), '*.jpg')
 A_B_dataset_test, _ = data.make_zip_dataset(A_img_paths_test, B_img_paths_test, args.batch_size, args.load_size, args.crop_size, training=False, repeat=True)
 
 
@@ -201,7 +206,23 @@ with train_summary_writer.as_default():
         ep_cnt.assign_add(1)
 
         # train for an epoch
-        for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
+        # for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
+        #     G_loss_dict, D_loss_dict = train_step(A, B)
+
+        #     # # summary
+        #     tl.summary(G_loss_dict, step=G_optimizer.iterations, name='G_losses')
+        #     tl.summary(D_loss_dict, step=G_optimizer.iterations, name='D_losses')
+        #     tl.summary({'learning rate': G_lr_scheduler.current_learning_rate}, step=G_optimizer.iterations, name='learning rate')
+
+        #     # sample
+        #     if G_optimizer.iterations.numpy() % 100 == 0:
+        #         A, B = next(test_iter)
+        #         A2B, B2A, A2B2A, B2A2B = sample(A, B)
+        #         img = im.immerge(np.concatenate([A, A2B, A2B2A, B, B2A, B2A2B], axis=0), n_rows=2)
+        #         im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
+        
+        # The dataset size now is too large, so now take 5% of the dataset to train the model randomly
+        for A, B in tqdm.tqdm(A_B_dataset.take(2000), desc='Inner Epoch Loop', total=2000):
             G_loss_dict, D_loss_dict = train_step(A, B)
 
             # # summary
@@ -215,6 +236,26 @@ with train_summary_writer.as_default():
                 A2B, B2A, A2B2A, B2A2B = sample(A, B)
                 img = im.immerge(np.concatenate([A, A2B, A2B2A, B, B2A, B2A2B], axis=0), n_rows=2)
                 im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
-
+                
+            import matplotlib.pyplot as plt
+            plt.plot(G_loss_dict['A2B_g_loss'], label='A2B_g_loss')
+            plt.plot(G_loss_dict['B2A_g_loss'], label='B2A_g_loss')
+            plt.plot(G_loss_dict['A2B2A_cycle_loss'], label='A2B2A_cycle_loss')
+            plt.plot(G_loss_dict['B2A2B_cycle_loss'], label='B2A2B_cycle_loss')
+            plt.plot(G_loss_dict['A2A_id_loss'], label='A2A_id_loss')
+            plt.plot(G_loss_dict['B2B_id_loss'], label='B2B_id_loss')
+            plt.xlabel('Iterations')
+            plt.ylabel('Loss')
+            plt.legend()
+            plt.savefig(py.join(output_dir, 'g_loss_curve.png'))
+            
+            plt.plot(D_loss_dict['A_d_loss'], label='A_d_loss')
+            plt.plot(D_loss_dict['B_d_loss'], label='B_d_loss')
+            plt.plot(D_loss_dict['D_A_gp'], label='D_A_gp')
+            plt.plot(D_loss_dict['D_B_gp'], label='D_B_gp')
+            plt.xlabel('Iterations')
+            plt.ylabel('Loss')
+            plt.legend()
+            plt.savefig(py.join(output_dir, 'd_loss_curve.png'))
         # save checkpoint
         checkpoint.save(ep)
