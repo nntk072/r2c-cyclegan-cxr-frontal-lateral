@@ -6,6 +6,8 @@ import tf2lib as tl
 
 import data
 import module
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 # ==============================================================================
 # =                                   param                                    =

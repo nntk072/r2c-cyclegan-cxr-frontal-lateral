@@ -4,7 +4,7 @@ import zipfile
 import os
 
 # Define the path
-path = 'datasets'
+path = ''
 file = 'datasets.zip'
 
 # Remove the zip file

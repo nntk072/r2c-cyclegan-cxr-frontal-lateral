@@ -1,5 +1,6 @@
 import functools
 
+import matplotlib.pyplot as plt
 import imlib as im
 import numpy as np
 import pylib as py
@@ -11,7 +12,8 @@ import tqdm
 
 import data
 import module
-
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 # ==============================================================================
 # =                                   param                                    =
@@ -196,6 +198,18 @@ test_iter = iter(A_B_dataset_test)
 sample_dir = py.join(output_dir, 'samples_training')
 py.mkdir(sample_dir)
 
+#plotting data
+A2B_g_loss = []
+B2A_g_loss = []
+A2B2A_cycle_loss = []
+B2A2B_cycle_loss = []
+A2A_id_loss = []
+B2B_id_loss = []
+A_d_loss = []
+B_d_loss = []
+
+iteration = 0
+iterations = []
 # main loop
 with train_summary_writer.as_default():
     for ep in tqdm.trange(args.epochs, desc='Epoch Loop'):
@@ -230,6 +244,20 @@ with train_summary_writer.as_default():
             tl.summary(D_loss_dict, step=G_optimizer.iterations, name='D_losses')
             tl.summary({'learning rate': G_lr_scheduler.current_learning_rate}, step=G_optimizer.iterations, name='learning rate')
 
+            # save the loss data
+            A2B_g_loss.append(G_loss_dict['A2B_g_loss'].numpy())
+            B2A_g_loss.append(G_loss_dict['B2A_g_loss'].numpy())
+            
+            A2B2A_cycle_loss.append(G_loss_dict['A2B2A_cycle_loss'].numpy())
+            B2A2B_cycle_loss.append(G_loss_dict['B2A2B_cycle_loss'].numpy())
+            
+            A2A_id_loss.append(G_loss_dict['A2A_id_loss'].numpy())
+            B2B_id_loss.append(G_loss_dict['B2B_id_loss'].numpy())
+            A_d_loss.append(D_loss_dict['A_d_loss'].numpy())
+            B_d_loss.append(D_loss_dict['B_d_loss'].numpy())
+            
+            iteration += 1
+            iterations.append(G_optimizer.iterations.numpy())
             # sample
             if G_optimizer.iterations.numpy() % 100 == 0:
                 A, B = next(test_iter)
@@ -237,25 +265,45 @@ with train_summary_writer.as_default():
                 img = im.immerge(np.concatenate([A, A2B, A2B2A, B, B2A, B2A2B], axis=0), n_rows=2)
                 im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
                 
-            import matplotlib.pyplot as plt
-            plt.plot(G_loss_dict['A2B_g_loss'], label='A2B_g_loss')
-            plt.plot(G_loss_dict['B2A_g_loss'], label='B2A_g_loss')
-            plt.plot(G_loss_dict['A2B2A_cycle_loss'], label='A2B2A_cycle_loss')
-            plt.plot(G_loss_dict['B2A2B_cycle_loss'], label='B2A2B_cycle_loss')
-            plt.plot(G_loss_dict['A2A_id_loss'], label='A2A_id_loss')
-            plt.plot(G_loss_dict['B2B_id_loss'], label='B2B_id_loss')
-            plt.xlabel('Iterations')
-            plt.ylabel('Loss')
-            plt.legend()
-            plt.savefig(py.join(output_dir, 'g_loss_curve.png'))
-            
-            plt.plot(D_loss_dict['A_d_loss'], label='A_d_loss')
-            plt.plot(D_loss_dict['B_d_loss'], label='B_d_loss')
-            plt.plot(D_loss_dict['D_A_gp'], label='D_A_gp')
-            plt.plot(D_loss_dict['D_B_gp'], label='D_B_gp')
-            plt.xlabel('Iterations')
-            plt.ylabel('Loss')
-            plt.legend()
-            plt.savefig(py.join(output_dir, 'd_loss_curve.png'))
+                # plot the loss
+                plt.figure()
+                plt.plot(iterations, A2B_g_loss, label='A2B_g_loss')
+                plt.plot(iterations, B2A_g_loss, label='B2A_g_loss')
+                plt.legend()
+                plt.title('Generator Losses')
+                plt.xlabel('Iterations')
+                plt.ylabel('Loss')
+                plt.savefig(py.join(output_dir, 'generator_losses.png'))
+                plt.close()
+                
+                plt.figure()
+                plt.plot(iterations, A2B2A_cycle_loss, label='A2B2A_cycle_loss')
+                plt.plot(iterations, B2A2B_cycle_loss, label='B2A2B_cycle_loss')
+                plt.legend()
+                plt.title('Cycle Losses')
+                plt.xlabel('Iterations')
+                plt.ylabel('Loss')
+                plt.savefig(py.join(output_dir, 'cycle_losses.png'))
+                plt.close()
+                
+                plt.figure()
+                plt.plot(iterations, A2A_id_loss, label='A2A_id_loss')
+                plt.plot(iterations, B2B_id_loss, label='B2B_id_loss')
+                plt.legend()
+                plt.title('Identity Losses')
+                plt.xlabel('Iterations')
+                plt.ylabel('Loss')
+                plt.savefig(py.join(output_dir, 'identity_losses.png'))
+                plt.close()
+                
+                plt.figure()
+                plt.plot(iterations, A_d_loss, label='A_d_loss')
+                plt.plot(iterations, B_d_loss, label='B_d_loss')
+                plt.legend()
+                plt.title('Discriminator Losses')
+                plt.xlabel('Iterations')
+                plt.ylabel('Loss')
+                plt.savefig(py.join(output_dir, 'D_losses.png'))
+                plt.close()
         # save checkpoint
         checkpoint.save(ep)
