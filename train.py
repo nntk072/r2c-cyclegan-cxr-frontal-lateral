@@ -26,7 +26,7 @@ py.arg('--load_size', type=int, default=286)  # load image to this size
 py.arg('--crop_size', type=int, default=256)  # then crop to this size
 py.arg('--batch_size', type=int, default=1)
 # py.arg('--epochs', type=int, default=200)
-py.arg('--epochs', type=int, default=200)
+py.arg('--epochs', type=int, default=500)
 py.arg('--epoch_decay', type=int, default=100)  # epoch to start decaying learning rate
 # py.arg('--lr', type=float, default=0.0002)
 py.arg('--lr', type=float, default=0.002)
@@ -259,7 +259,7 @@ with train_summary_writer.as_default():
             iteration += 1
             iterations.append(G_optimizer.iterations.numpy())
             # sample
-            if G_optimizer.iterations.numpy() % 100 == 0:
+            if G_optimizer.iterations.numpy() % 500 == 0:
                 A, B = next(test_iter)
                 A2B, B2A, A2B2A, B2A2B = sample(A, B)
                 img = im.immerge(np.concatenate([A, A2B, A2B2A, B, B2A, B2A2B], axis=0), n_rows=2)
