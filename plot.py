@@ -12,9 +12,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+import pylib as py
 def main():
-    for ep in range(0, 1000):
+    for ep in range(0, 2):
         A2B_g_loss = np.load(f'output/plot_data/loss_A2B_g_loss_{ep}.npy')
         B2A_g_loss = np.load(f'output/plot_data/loss_B2A_g_loss_{ep}.npy')
         A2B2A_cycle_loss = np.load(f'output/plot_data/loss_A2B2A_cycle_loss_{ep}.npy')
@@ -26,6 +26,7 @@ def main():
         iterations = np.load(f'output/plot_data/iterations_{ep}.npy')
 
         # Plot the loss data for each iteration
+        plt.figure()
         plt.plot(iterations, A2B_g_loss, label='A2B_g_loss')
         plt.plot(iterations, B2A_g_loss, label='B2A_g_loss')
         plt.plot(iterations, A2B2A_cycle_loss, label='A2B2A_cycle_loss')
@@ -39,7 +40,7 @@ def main():
         plt.title('Loss vs Iterations')
         plt.legend()
         plt.show()
-        plt.savefig(f'output/plot_figure/loss_vs_iterations_{ep}.png')
+        plt.savefig(f'output/loss_vs_iterations_{ep}.png')
         plt.close()
     
     
@@ -92,22 +93,47 @@ def save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_c
     np.save(f'output/plot_data/loss_B_d_loss_{ep}.npy', B_d_loss)
     np.save(f'output/plot_data/iterations_{ep}.npy', iterations)
 
-def temporary_plot(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss):
+def temporary_plot(g_loss_dir, d_loss_dir, cycle_loss_dir, id_loss_dir, iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep):
     """Temporary plot."""
+    # plot the loss
+    plt.figure()
     plt.plot(iterations, A2B_g_loss, label='A2B_g_loss')
     plt.plot(iterations, B2A_g_loss, label='B2A_g_loss')
-    plt.plot(iterations, A2B2A_cycle_loss, label='A2B2A_cycle_loss')
-    plt.plot(iterations, B2A2B_cycle_loss, label='B2A2B_cycle_loss')
-    plt.plot(iterations, A2A_id_loss, label='A2A_id_loss')
-    plt.plot(iterations, B2B_id_loss, label='B2B_id_loss')
-    plt.plot(iterations, A_d_loss, label='A_d_loss')
-    plt.plot(iterations, B_d_loss, label='B_d_loss')
+    plt.legend()
+    plt.title('Generator Losses')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
-    plt.title('Loss vs Iterations')
+    plt.savefig(py.join(g_loss_dir, f'generator_losses_{ep}.png'))
+    plt.close()
+    
+    plt.figure()
+    plt.plot(iterations, A2B2A_cycle_loss, label='A2B2A_cycle_loss')
+    plt.plot(iterations, B2A2B_cycle_loss, label='B2A2B_cycle_loss')
     plt.legend()
-    plt.show()
-    plt.savefig(f'output/plot_figure/loss_vs_iterations_{start_epoch}_to_{end_epoch}.png')
+    plt.title('Cycle Losses')
+    plt.xlabel('Iterations')
+    plt.ylabel('Loss')
+    plt.savefig(py.join(cycle_loss_dir, f'cycle_losses_{ep}.png'))
+    plt.close()
+    
+    plt.figure()
+    plt.plot(iterations, A2A_id_loss, label='A2A_id_loss')
+    plt.plot(iterations, B2B_id_loss, label='B2B_id_loss')
+    plt.legend()
+    plt.title('Identity Losses')
+    plt.xlabel('Iterations')
+    plt.ylabel('Loss')
+    plt.savefig(py.join(id_loss_dir, f'identity_losses_{ep}.png'))
+    plt.close()
+    
+    plt.figure()
+    plt.plot(iterations, A_d_loss, label='A_d_loss')
+    plt.plot(iterations, B_d_loss, label='B_d_loss')
+    plt.legend()
+    plt.title('Discriminator Losses')
+    plt.xlabel('Iterations')
+    plt.ylabel('Loss')
+    plt.savefig(py.join(d_loss_dir, f'discriminator_losses_{ep}.png'))
     plt.close()
     
 if __name__ == '__main__':
