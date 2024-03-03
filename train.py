@@ -12,6 +12,7 @@ import tqdm
 
 import data
 import module
+from plot import temporary_plot, save_plot_data
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
@@ -20,17 +21,16 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 # ==============================================================================
 
 # py.arg('--dataset', default='CheXpert-v1.0-small')
+py.arg('--plot_data_dir', default='plot_data')
 py.arg('--dataset', default='')
 py.arg('--datasets_dir', default='datasets')
 py.arg('--load_size', type=int, default=286)  # load image to this size
 py.arg('--crop_size', type=int, default=256)  # then crop to this size
 py.arg('--batch_size', type=int, default=1)
 # py.arg('--epochs', type=int, default=200)
-py.arg('--epochs', type=int, default=500)
+py.arg('--epochs', type=int, default=1000)
 py.arg('--epoch_decay', type=int, default=100)  # epoch to start decaying learning rate
-# py.arg('--lr', type=float, default=0.0002)
-py.arg('--lr', type=float, default=0.002)
-# py.arg('--beta_1', type=float, default=0.5)
+py.arg('--lr', type=float, default=0.0002)
 py.arg('--beta_1', type=float, default=0.5)
 py.arg('--adversarial_loss_mode', default='lsgan', choices=['gan', 'hinge_v1', 'hinge_v2', 'lsgan', 'wgan'])
 # py.arg('--gradient_penalty_mode', default='none', choices=['none', 'dragan', 'wgan-gp'])
@@ -44,6 +44,9 @@ args = py.args()
 
 # output_dir
 output_dir = py.join('output', args.dataset)
+# plot_dir
+plot_dir = py.join('output', args.dataset, args.plot_data_dir)
+
 py.mkdir(output_dir)
 
 # save settings
@@ -184,7 +187,7 @@ checkpoint = tl.Checkpoint(dict(G_A2B=G_A2B,
                                 D_optimizer=D_optimizer,
                                 ep_cnt=ep_cnt),
                            py.join(output_dir, 'checkpoints'),
-                           max_to_keep=5)
+                           max_to_keep=1000)
 try:  # restore checkpoint including the epoch counter
     checkpoint.restore().assert_existing_objects_matched()
 except Exception as e:
@@ -198,15 +201,6 @@ test_iter = iter(A_B_dataset_test)
 sample_dir = py.join(output_dir, 'samples_training')
 py.mkdir(sample_dir)
 
-#plotting data
-A2B_g_loss = []
-B2A_g_loss = []
-A2B2A_cycle_loss = []
-B2A2B_cycle_loss = []
-A2A_id_loss = []
-B2B_id_loss = []
-A_d_loss = []
-B_d_loss = []
 
 iteration = 0
 iterations = []
@@ -221,22 +215,56 @@ with train_summary_writer.as_default():
 
         # train for an epoch
         # for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
-        #     G_loss_dict, D_loss_dict = train_step(A, B)
+            # saving data
+            # A2B_g_loss = []
+            # B2A_g_loss = []
+            # A2B2A_cycle_loss = []
+            # B2A2B_cycle_loss = []
+            # A2A_id_loss = []
+            # B2B_id_loss = []
+            # A_d_loss = []
+            # B_d_loss = []
+            
+            # G_loss_dict, D_loss_dict = train_step(A, B)
 
-        #     # # summary
-        #     tl.summary(G_loss_dict, step=G_optimizer.iterations, name='G_losses')
-        #     tl.summary(D_loss_dict, step=G_optimizer.iterations, name='D_losses')
-        #     tl.summary({'learning rate': G_lr_scheduler.current_learning_rate}, step=G_optimizer.iterations, name='learning rate')
+            # # # summary
+            # tl.summary(G_loss_dict, step=G_optimizer.iterations, name='G_losses')
+            # tl.summary(D_loss_dict, step=G_optimizer.iterations, name='D_losses')
+            # tl.summary({'learning rate': G_lr_scheduler.current_learning_rate}, step=G_optimizer.iterations, name='learning rate')
 
-        #     # sample
-        #     if G_optimizer.iterations.numpy() % 100 == 0:
-        #         A, B = next(test_iter)
-        #         A2B, B2A, A2B2A, B2A2B = sample(A, B)
-        #         img = im.immerge(np.concatenate([A, A2B, A2B2A, B, B2A, B2A2B], axis=0), n_rows=2)
-        #         im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
+            # # save the loss data
+            # A2B_g_loss.append(G_loss_dict['A2B_g_loss'].numpy())
+            # B2A_g_loss.append(G_loss_dict['B2A_g_loss'].numpy())
+            
+            # A2B2A_cycle_loss.append(G_loss_dict['A2B2A_cycle_loss'].numpy())
+            # B2A2B_cycle_loss.append(G_loss_dict['B2A2B_cycle_loss'].numpy())
+            
+            # A2A_id_loss.append(G_loss_dict['A2A_id_loss'].numpy())
+            # B2B_id_loss.append(G_loss_dict['B2B_id_loss'].numpy())
+            # A_d_loss.append(D_loss_dict['A_d_loss'].numpy())
+            # B_d_loss.append(D_loss_dict['B_d_loss'].numpy())
+            
+            # iteration += 1
+            # iterations.append(G_optimizer.iterations.numpy())
+            # # sample
+            # # if G_optimizer.iterations.numpy() % 500 == 0: # 1/5 epoch
+            # #     A, B = next(test_iter)
+            # #     A2B, B2A, A2B2A, B2A2B = sample(A, B)
+            # #     img = im.immerge(np.concatenate([A, A2B, A2B2A, B, B2A, B2A2B], axis=0), n_rows=2)
+            # #     im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
         
-        # The dataset size now is too large, so now take 5% of the dataset to train the model randomly
+        
         for A, B in tqdm.tqdm(A_B_dataset.take(2000), desc='Inner Epoch Loop', total=2000):
+            # saving data
+            A2B_g_loss = []
+            B2A_g_loss = []
+            A2B2A_cycle_loss = []
+            B2A2B_cycle_loss = []
+            A2A_id_loss = []
+            B2B_id_loss = []
+            A_d_loss = []
+            B_d_loss = []
+            
             G_loss_dict, D_loss_dict = train_step(A, B)
 
             # # summary
@@ -259,51 +287,22 @@ with train_summary_writer.as_default():
             iteration += 1
             iterations.append(G_optimizer.iterations.numpy())
             # sample
-            if G_optimizer.iterations.numpy() % 500 == 0:
-                A, B = next(test_iter)
-                A2B, B2A, A2B2A, B2A2B = sample(A, B)
-                img = im.immerge(np.concatenate([A, A2B, A2B2A, B, B2A, B2A2B], axis=0), n_rows=2)
-                im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
-                
-                # plot the loss
-                plt.figure()
-                plt.plot(iterations, A2B_g_loss, label='A2B_g_loss')
-                plt.plot(iterations, B2A_g_loss, label='B2A_g_loss')
-                plt.legend()
-                plt.title('Generator Losses')
-                plt.xlabel('Iterations')
-                plt.ylabel('Loss')
-                plt.savefig(py.join(output_dir, 'generator_losses.png'))
-                plt.close()
-                
-                plt.figure()
-                plt.plot(iterations, A2B2A_cycle_loss, label='A2B2A_cycle_loss')
-                plt.plot(iterations, B2A2B_cycle_loss, label='B2A2B_cycle_loss')
-                plt.legend()
-                plt.title('Cycle Losses')
-                plt.xlabel('Iterations')
-                plt.ylabel('Loss')
-                plt.savefig(py.join(output_dir, 'cycle_losses.png'))
-                plt.close()
-                
-                plt.figure()
-                plt.plot(iterations, A2A_id_loss, label='A2A_id_loss')
-                plt.plot(iterations, B2B_id_loss, label='B2B_id_loss')
-                plt.legend()
-                plt.title('Identity Losses')
-                plt.xlabel('Iterations')
-                plt.ylabel('Loss')
-                plt.savefig(py.join(output_dir, 'identity_losses.png'))
-                plt.close()
-                
-                plt.figure()
-                plt.plot(iterations, A_d_loss, label='A_d_loss')
-                plt.plot(iterations, B_d_loss, label='B_d_loss')
-                plt.legend()
-                plt.title('Discriminator Losses')
-                plt.xlabel('Iterations')
-                plt.ylabel('Loss')
-                plt.savefig(py.join(output_dir, 'D_losses.png'))
-                plt.close()
+            # if G_optimizer.iterations.numpy() % 500 == 0: # 1/5 epoch
+            #     A, B = next(test_iter)
+            #     A2B, B2A, A2B2A, B2A2B = sample(A, B)
+            #     img = im.immerge(np.concatenate([A, A2B, A2B2A, B, B2A, B2A2B], axis=0), n_rows=2)
+            #     im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
+        
+        # sample for 1 image/5 epoch
+        if ep % 5 == 0:
+            A, B = next(test_iter)
+            A2B, B2A, A2B2A, B2A2B = sample(A, B)
+            img = im.immerge(np.concatenate([A, A2B, A2B2A, B, B2A, B2A2B], axis=0), n_rows=2)
+            im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
+        
+        # Save the loss data for each iteration into a separate file
+        save_plot_data(A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, iterations, ep, plot_dir)
+        # Plot the loss data for each iteration
+        temporary_plot(ep, iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss)
         # save checkpoint
         checkpoint.save(ep)
