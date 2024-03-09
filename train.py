@@ -40,8 +40,8 @@ py.arg('--gradient_penalty_mode', default='wgan-gp',
        choices=['none', 'dragan', 'wgan-gp'])
 py.arg('--gradient_penalty_weight', type=float, default=10.0)
 py.arg('--cycle_loss_weight', type=float, default=10.0)
-# py.arg('--identity_loss_weight', type=float, default=0.0)
-py.arg('--identity_loss_weight', type=float, default=5.0)
+py.arg('--identity_loss_weight', type=float, default=0.0)
+# py.arg('--identity_loss_weight', type=float, default=5.0)
 py.arg('--pool_size', type=int, default=50)  # pool size to store fake samples
 args = py.args()
 
@@ -254,8 +254,8 @@ with train_summary_writer.as_default():
         A_d_loss = []
         B_d_loss = []
         # train for an epoch
-        # for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
-        for A, B in tqdm.tqdm(A_B_dataset.take(2000), desc='Inner Epoch Loop', total=2000):
+        for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
+        # for A, B in tqdm.tqdm(A_B_dataset.take(2000), desc='Inner Epoch Loop', total=2000):
 
             G_loss_dict, D_loss_dict = train_step(A, B)
 
