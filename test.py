@@ -58,19 +58,23 @@ def sample_B2A(B):
 save_dir = py.join(args.experiment_dir, 'samples_testing', 'A2B')
 py.mkdir(save_dir)
 i = 0
-for A in A_dataset_test:
+for A, B in zip(A_dataset_test, B_dataset_test):
     A2B, A2B2A = sample_A2B(A)
-    for A_i, A2B_i, A2B2A_i in zip(A, A2B, A2B2A):
-        img = np.concatenate([A_i.numpy(), A2B_i.numpy(), A2B2A_i.numpy()], axis=1)
+    for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+        # img = np.concatenate([A_i.numpy(), A2B_i.numpy(), A2B2A_i.numpy()], axis=1)
+        # im.imwrite(img, py.join(save_dir, py.name_ext(A_img_paths_test[i])))
+        img = np.concatenate([A_i.numpy(), A2B_i.numpy(), A2B2A_i.numpy(), B_i.numpy()], axis=1)
         im.imwrite(img, py.join(save_dir, py.name_ext(A_img_paths_test[i])))
         i += 1
 
 save_dir = py.join(args.experiment_dir, 'samples_testing', 'B2A')
 py.mkdir(save_dir)
 i = 0
-for B in B_dataset_test:
+for A, B in zip(A_dataset_test, B_dataset_test):
     B2A, B2A2B = sample_B2A(B)
-    for B_i, B2A_i, B2A2B_i in zip(B, B2A, B2A2B):
-        img = np.concatenate([B_i.numpy(), B2A_i.numpy(), B2A2B_i.numpy()], axis=1)
+    for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+        # img = np.concatenate([B_i.numpy(), B2A_i.numpy(), B2A2B_i.numpy()], axis=1)
+        # im.imwrite(img, py.join(save_dir, py.name_ext(B_img_paths_test[i])))
+        img = np.concatenate([B_i.numpy(), B2A_i.numpy(), B2A2B_i.numpy(), A_i.numpy()], axis=1)
         im.imwrite(img, py.join(save_dir, py.name_ext(B_img_paths_test[i])))
         i += 1
