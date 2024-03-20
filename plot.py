@@ -24,15 +24,15 @@ def main():
     B_d_loss_list = np.array([])
     ep_list = np.array([])
     for ep in range(0, 1000):
-        A2B_g_loss = np.load(f'output/plot_data/loss_A2B_g_loss_{ep}.npy')
-        B2A_g_loss = np.load(f'output/plot_data/loss_B2A_g_loss_{ep}.npy')
-        A2B2A_cycle_loss = np.load(f'output/plot_data/loss_A2B2A_cycle_loss_{ep}.npy')
-        B2A2B_cycle_loss = np.load(f'output/plot_data/loss_B2A2B_cycle_loss_{ep}.npy')
-        A2A_id_loss = np.load(f'output/plot_data/loss_A2A_id_loss_{ep}.npy')
-        B2B_id_loss = np.load(f'output/plot_data/loss_B2B_id_loss_{ep}.npy')
-        A_d_loss = np.load(f'output/plot_data/loss_A_d_loss_{ep}.npy')
-        B_d_loss = np.load(f'output/plot_data/loss_B_d_loss_{ep}.npy')
-        iterations = np.load(f'output/plot_data/iterations_{ep}.npy')
+        A2B_g_loss = np.load(f'output/plot_data/training/loss_A2B_g_loss_{ep}.npy')
+        B2A_g_loss = np.load(f'output/plot_data/training/loss_B2A_g_loss_{ep}.npy')
+        A2B2A_cycle_loss = np.load(f'output/plot_data/training/loss_A2B2A_cycle_loss_{ep}.npy')
+        B2A2B_cycle_loss = np.load(f'output/plot_data/training/loss_B2A2B_cycle_loss_{ep}.npy')
+        A2A_id_loss = np.load(f'output/plot_data/training/loss_A2A_id_loss_{ep}.npy')
+        B2B_id_loss = np.load(f'output/plot_data/training/loss_B2B_id_loss_{ep}.npy')
+        A_d_loss = np.load(f'output/plot_data/training/loss_A_d_loss_{ep}.npy')
+        B_d_loss = np.load(f'output/plot_data/training/loss_B_d_loss_{ep}.npy')
+        iterations = np.load(f'output/plot_data/training/iterations_{ep}.npy')
 
         # Calculate the mean of the loss data for each iteration and save into the list
         A2B_g_loss_list = np.append(A2B_g_loss_list, np.mean(A2B_g_loss))
@@ -45,10 +45,45 @@ def main():
         B_d_loss_list = np.append(B_d_loss_list, np.mean(B_d_loss))
         ep_list = np.append(ep_list, ep)
     
+    # Do the same with the valid
+    A2B_g_loss_list_valid = np.array([])
+    B2A_g_loss_list_valid = np.array([])
+    A2B2A_cycle_loss_list_valid = np.array([])
+    B2A2B_cycle_loss_list_valid = np.array([])
+    A2A_id_loss_list_valid = np.array([])
+    B2B_id_loss_list_valid = np.array([])
+    A_d_loss_list_valid = np.array([])
+    B_d_loss_list_valid = np.array([])
+    ep_list_valid = np.array([])
+    for ep in range(0, 1000): # the name of the folder is validation
+        A2B_g_loss = np.load(f'output/plot_data/validation/loss_A2B_g_loss_{ep}.npy')
+        B2A_g_loss = np.load(f'output/plot_data/validation/loss_B2A_g_loss_{ep}.npy')
+        A2B2A_cycle_loss = np.load(f'output/plot_data/validation/loss_A2B2A_cycle_loss_{ep}.npy')
+        B2A2B_cycle_loss = np.load(f'output/plot_data/validation/loss_B2A2B_cycle_loss_{ep}.npy')
+        A2A_id_loss = np.load(f'output/plot_data/validation/loss_A2A_id_loss_{ep}.npy')
+        B2B_id_loss = np.load(f'output/plot_data/validation/loss_B2B_id_loss_{ep}.npy')
+        A_d_loss = np.load(f'output/plot_data/validation/loss_A_d_loss_{ep}.npy')
+        B_d_loss = np.load(f'output/plot_data/validation/loss_B_d_loss_{ep}.npy')
+        iterations = np.load(f'output/plot_data/validation/iterations_{ep}.npy')
+
+        # Calculate the mean of the loss data for each iteration and save into the list
+        A2B_g_loss_list_valid = np.append(A2B_g_loss_list_valid, np.mean(A2B_g_loss))
+        B2A_g_loss_list_valid = np.append(B2A_g_loss_list_valid, np.mean(B2A_g_loss))
+        A2B2A_cycle_loss_list_valid = np.append(A2B2A_cycle_loss_list_valid, np.mean(A2B2A_cycle_loss))
+        B2A2B_cycle_loss_list_valid = np.append(B2A2B_cycle_loss_list_valid, np.mean(B2A2B_cycle_loss))
+        A2A_id_loss_list_valid = np.append(A2A_id_loss_list_valid, np.mean(A2A_id_loss))
+        B2B_id_loss_list_valid = np.append(B2B_id_loss_list_valid, np.mean(B2B_id_loss))
+        A_d_loss_list_valid = np.append(A_d_loss_list_valid, np.mean(A_d_loss))
+        B_d_loss_list_valid = np.append(B_d_loss_list_valid, np.mean(B_d_loss))
+        ep_list_valid = np.append(ep_list_valid, ep)
+        
+    
     # Plot into 4 figures, g_loss, cycle_loss, id_loss, d_loss
     plt.figure()
     plt.plot(ep_list, A2B_g_loss_list, label='A2B_g_loss')
     plt.plot(ep_list, B2A_g_loss_list, label='B2A_g_loss')
+    plt.plot(ep_list_valid, A2B_g_loss_list_valid, label='A2B_g_loss_valid')
+    plt.plot(ep_list_valid, B2A_g_loss_list_valid, label='B2A_g_loss_valid')
     plt.legend()
     plt.title('Generator Losses')
     plt.xlabel('Epochs')
@@ -59,6 +94,8 @@ def main():
     plt.figure()
     plt.plot(ep_list, A2B2A_cycle_loss_list, label='A2B2A_cycle_loss')
     plt.plot(ep_list, B2A2B_cycle_loss_list, label='B2A2B_cycle_loss')
+    plt.plot(ep_list_valid, A2B2A_cycle_loss_list_valid, label='A2B2A_cycle_loss_valid')
+    plt.plot(ep_list_valid, B2A2B_cycle_loss_list_valid, label='B2A2B_cycle_loss_valid')
     plt.legend()
     plt.title('Cycle Losses')
     plt.xlabel('Epochs')
@@ -69,6 +106,8 @@ def main():
     plt.figure()
     plt.plot(ep_list, A2A_id_loss_list, label='A2A_id_loss')
     plt.plot(ep_list, B2B_id_loss_list, label='B2B_id_loss')
+    plt.plot(ep_list_valid, A2A_id_loss_list_valid, label='A2A_id_loss_valid')
+    plt.plot(ep_list_valid, B2B_id_loss_list_valid, label='B2B_id_loss_valid')
     plt.legend()
     plt.title('Identity Losses')
     plt.xlabel('Epochs')
@@ -79,6 +118,8 @@ def main():
     plt.figure()
     plt.plot(ep_list, A_d_loss_list, label='A_d_loss')
     plt.plot(ep_list, B_d_loss_list, label='B_d_loss')
+    plt.plot(ep_list_valid, A_d_loss_list_valid, label='A_d_loss_valid')
+    plt.plot(ep_list_valid, B_d_loss_list_valid, label='B_d_loss_valid')
     plt.legend()
     plt.title('Discriminator Losses')
     plt.xlabel('Epochs')
@@ -123,17 +164,18 @@ def main():
     # plt.show()
     # plt.savefig(f'output/plot_figure/loss_vs_iterations_{start_epoch}_to_{end_epoch}.png')
 
-def save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep):
+def save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, name):
     """Save the loss data for each iteration into a separate file."""
-    np.save(f'output/plot_data/loss_A2B_g_loss_{ep}.npy', A2B_g_loss)
-    np.save(f'output/plot_data/loss_B2A_g_loss_{ep}.npy', B2A_g_loss)
-    np.save(f'output/plot_data/loss_A2B2A_cycle_loss_{ep}.npy', A2B2A_cycle_loss)
-    np.save(f'output/plot_data/loss_B2A2B_cycle_loss_{ep}.npy', B2A2B_cycle_loss)
-    np.save(f'output/plot_data/loss_A2A_id_loss_{ep}.npy', A2A_id_loss)
-    np.save(f'output/plot_data/loss_B2B_id_loss_{ep}.npy', B2B_id_loss)
-    np.save(f'output/plot_data/loss_A_d_loss_{ep}.npy', A_d_loss)
-    np.save(f'output/plot_data/loss_B_d_loss_{ep}.npy', B_d_loss)
-    np.save(f'output/plot_data/iterations_{ep}.npy', iterations)
+    np.save(f'output/plot_data/{name}/loss_A2B_g_loss_{ep}.npy', A2B_g_loss)
+    np.save(f'output/plot_data/{name}/loss_B2A_g_loss_{ep}.npy', B2A_g_loss)
+    np.save(f'output/plot_data/{name}/loss_A2B2A_cycle_loss_{ep}.npy', A2B2A_cycle_loss)
+    np.save(f'output/plot_data/{name}/loss_B2A2B_cycle_loss_{ep}.npy', B2A2B_cycle_loss)
+    np.save(f'output/plot_data/{name}/loss_A2A_id_loss_{ep}.npy', A2A_id_loss)
+    np.save(f'output/plot_data/{name}/loss_B2B_id_loss_{ep}.npy', B2B_id_loss)
+    np.save(f'output/plot_data/{name}/loss_A_d_loss_{ep}.npy', A_d_loss)
+    np.save(f'output/plot_data/{name}/loss_B_d_loss_{ep}.npy', B_d_loss)
+    np.save(f'output/plot_data/{name}/iterations_{ep}.npy', iterations)
+
 
 def temporary_plot(g_loss_dir, d_loss_dir, cycle_loss_dir, id_loss_dir, iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep):
     """Temporary plot."""

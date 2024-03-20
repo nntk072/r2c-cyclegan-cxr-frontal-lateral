@@ -188,6 +188,7 @@ def train_D(A, B, A2B, B2A):
             'D_A_gp': D_A_gp,
             'D_B_gp': D_B_gp}
 
+
 @tf.function
 def valid_G(A, B):
     A2B = G_A2B(A, training=False)
@@ -213,6 +214,7 @@ def valid_G(A, B):
             'B2A2B_cycle_loss': B2A2B_cycle_loss,
             'A2A_id_loss': A2A_id_loss,
             'B2B_id_loss': B2B_id_loss}
+
 
 @tf.function
 def valid_D(A, B, A2B, B2A):
@@ -292,69 +294,55 @@ valid_iter = iter(A_B_dataset_test)
 valid_dir = py.join(output_dir, 'samples_valid')
 py.mkdir(valid_dir)
 
-# main loop
-with train_summary_writer.as_default():
-    for ep in tqdm.trange(args.epochs, desc='Epoch Loop'):
-        if ep < ep_cnt:
-            continue
 
-        # update epoch counter
-        ep_cnt.assign_add(1)
+# Restore the checkpoint from 1 to the last epoch, save the validation plot data
+checkDir = checkpoint.directory
+ep_step = 1000
+for ep in range(0, ep_step + 1):
+    # Load model
+    # try:
+    ep_cnt = tf.Variable(initial_value=0, trainable=False, dtype=tf.int64)
+    checkpoint_path = "ckpt-"+str(ep)
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A, D_A=D_A,
+                        D_B=D_B, ep_cnt=ep_cnt), checkDir).restore(checkpoint_path)
+    # except:
+    #     break
 
-        # saving data
-        iterations, A2B_g_loss, B2B_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss = [], [], [], [], [], [], [], [], []
+    print('Restored epoch: ', ep_cnt.numpy())
+    i = 0
 
-        # train for an epoch
-        for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
-            # for A, B in tqdm.tqdm(A_B_dataset.take(2000), desc='Inner Epoch Loop', total=2000):
+    # Train restoration step (Save the loss values for each iteration, and save the plot after 5 iterations
+    iterations, A2B_g_loss, B2B_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss = [
+    ], [], [], [], [], [], [], [], []
 
-            G_loss_dict, D_loss_dict = train_step(A, B)
+    # Valid step (Save the loss values for each iteration, and save the plot after 5 iterations
+    iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid = [], [], [], [], [], [], [], [], []
+    for A, B in tqdm.tqdm(A_B_dataset_valid, desc='Valid Epoch Loop', total=len_dataset):
+        A2B_g_loss_valid.append(valid_G(A, B)['A2B_g_loss'])
+        B2A_g_loss_valid.append(valid_G(A, B)['B2A_g_loss'])
+        A2B2A_cycle_loss_valid.append(valid_G(A, B)['A2B2A_cycle_loss'])
+        B2A2B_cycle_loss_valid.append(valid_G(A, B)['B2A2B_cycle_loss'])
+        A2A_id_loss_valid.append(valid_G(A, B)['A2A_id_loss'])
+        B2B_id_loss_valid.append(valid_G(A, B)['B2B_id_loss'])
+        A_d_loss_valid.append(valid_D(A, B, A2B, B2A)['A_d_loss'])
+        B_d_loss_valid.append(valid_D(A, B, A2B, B2A)['B_d_loss'])
+        iterations_valid.append(G_optimizer.iterations.numpy())
 
-            # # summary
-            tl.summary(G_loss_dict, step=G_optimizer.iterations,
-                       name='G_losses')
-            tl.summary(D_loss_dict, step=G_optimizer.iterations,
-                       name='D_losses')
-            tl.summary({'learning rate': G_lr_scheduler.current_learning_rate},
-                       step=G_optimizer.iterations, name='learning rate')
+    if ep != 0 and (ep-1) % 5 == 0:
+        A, B = next(valid_iter)
+        A2B, B2A, A2B2A, B2A2B = sample(A, B)
+        img = im.immerge(np.concatenate(
+            [A, A2B, B, B2A], axis=0), n_rows=2)
+        im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' %
+                                G_optimizer.iterations.numpy()))
 
-            if ep != 0 and (ep-1) % 5 == 0 and G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
-                A, B = next(test_iter)
-                A2B, B2A, A2B2A, B2A2B = sample(A, B)
-                img = im.immerge(np.concatenate(
-                    [A, A2B, B, B2A], axis=0), n_rows=2)
-                im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' %
-                           G_optimizer.iterations.numpy()))
+        A, B = next(test_iter)
+        A2B, B2A, A2B2A, B2A2B = sample(A, B)
+        img = im.immerge(np.concatenate(
+            [A, A2B, B, B2A], axis=0), n_rows=2)
+        im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' %
+                                G_optimizer.iterations.numpy()))
 
-        # Valid step (Save the loss values for each iteration, and save the plot after 5 iterations
-        iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid = [], [], [], [], [], [], [], [], []
-
-        for A, B in tqdm.tqdm(A_B_dataset_valid, desc='Valid Epoch Loop', total=len_dataset):
-            A2B_g_loss_valid.append(valid_G(A, B)['A2B_g_loss'])
-            B2A_g_loss_valid.append(valid_G(A, B)['B2A_g_loss'])
-            A2B2A_cycle_loss_valid.append(valid_G(A, B)['A2B2A_cycle_loss'])
-            B2A2B_cycle_loss_valid.append(valid_G(A, B)['B2A2B_cycle_loss'])
-            A2A_id_loss_valid.append(valid_G(A, B)['A2A_id_loss'])
-            B2B_id_loss_valid.append(valid_G(A, B)['B2B_id_loss'])
-            A_d_loss_valid.append(valid_D(A, B, A2B, B2A)['A_d_loss'])
-            B_d_loss_valid.append(valid_D(A, B, A2B, B2A)['B_d_loss'])
-            iterations_valid.append(G_optimizer.iterations.numpy())
-
-            if ep != 0 and (ep-1) % 5 == 0 and G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
-                A, B = next(valid_iter)
-                A2B, B2A, A2B2A, B2A2B = sample(A, B)
-                img = im.immerge(np.concatenate(
-                    [A, A2B, B, B2A], axis=0), n_rows=2)
-                im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' %
-                           G_optimizer.iterations.numpy()))
-
-        # Save the loss data for each iteration into a separate file
-        save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss,
-                       B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, "training")
-
-        # Save the loss validation data for each iteration into a separate file
-        save_plot_data(iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid,
-                       B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid, ep, "validation")
-
-        # save checkpoint
-        checkpoint.save(ep)
+    # Save the loss validation data for each iteration into a separate file
+    save_plot_data(iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid,
+                   B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid, ep, "validation")
