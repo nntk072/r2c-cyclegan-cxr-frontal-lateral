@@ -54,15 +54,31 @@ py.mkdir(plot_dir)
 py.mkdir(py.join(plot_dir, 'training'))
 py.mkdir(py.join(plot_dir, 'validation'))
 
-# py.mkdir(py.join('output', args.dataset, 'plot_figure'))
-# g_loss_dir = py.join('output', args.dataset, 'plot_figure', 'g_loss')
-# d_loss_dir = py.join('output', args.dataset, 'plot_figure', 'd_loss')
-# cycle_loss_dir = py.join('output', args.dataset, 'plot_figure', 'cycle_loss')
-# id_loss_dir = py.join('output', args.dataset, 'plot_figure', 'id_loss')
-# py.mkdir(g_loss_dir)
-# py.mkdir(d_loss_dir)
-# py.mkdir(cycle_loss_dir)
-# py.mkdir(id_loss_dir)
+py.mkdir(py.join('output', args.dataset, 'plot_figure'))
+g_loss_dir = py.join('output', args.dataset,
+                     'plot_figure', 'training', 'g_loss')
+d_loss_dir = py.join('output', args.dataset,
+                     'plot_figure', 'training', 'd_loss')
+cycle_loss_dir = py.join('output', args.dataset,
+                         'plot_figure', 'training', 'cycle_loss')
+id_loss_dir = py.join('output', args.dataset,
+                      'plot_figure', 'training', 'id_loss')
+py.mkdir(g_loss_dir)
+py.mkdir(d_loss_dir)
+py.mkdir(cycle_loss_dir)
+py.mkdir(id_loss_dir)
+g_loss_validation_dir = py.join(
+    'output', args.dataset, 'plot_figure', 'validation', 'g_loss')
+d_loss_validation_dir = py.join(
+    'output', args.dataset, 'plot_figure', 'validation', 'd_loss')
+cycle_loss_validation_dir = py.join(
+    'output', args.dataset, 'plot_figure', 'validation', 'cycle_loss')
+id_loss_validation_dir = py.join(
+    'output', args.dataset, 'plot_figure', 'validation', 'id_loss')
+py.mkdir(g_loss_validation_dir)
+py.mkdir(d_loss_validation_dir)
+py.mkdir(cycle_loss_validation_dir)
+py.mkdir(id_loss_validation_dir)
 
 # save settings
 py.args_to_yaml(py.join(output_dir, 'settings.yml'), args)
@@ -209,11 +225,11 @@ def valid_G(A, B):
     B2B_id_loss = identity_loss_fn(B, B2B)
 
     return A2B, B2A, {'A2B_g_loss': A2B_g_loss,
-            'B2A_g_loss': B2A_g_loss,
-            'A2B2A_cycle_loss': A2B2A_cycle_loss,
-            'B2A2B_cycle_loss': B2A2B_cycle_loss,
-            'A2A_id_loss': A2A_id_loss,
-            'B2B_id_loss': B2B_id_loss}
+                      'B2A_g_loss': B2A_g_loss,
+                      'A2B2A_cycle_loss': A2B2A_cycle_loss,
+                      'B2A2B_cycle_loss': B2A2B_cycle_loss,
+                      'A2A_id_loss': A2A_id_loss,
+                      'B2B_id_loss': B2B_id_loss}
 
 
 @tf.function
@@ -248,6 +264,7 @@ def train_step(A, B):
 
     return G_loss_dict, D_loss_dict
 
+
 @tf.function
 def sample(A, B):
     A2B = G_A2B(A, training=False)
@@ -256,9 +273,10 @@ def sample(A, B):
     B2A2B = G_A2B(B2A, training=False)
     return A2B, B2A, A2B2A, B2A2B
 
-def restore_step(A,B):
+
+def restore_step(A, B):
     A2B, B2A, A2B2A, B2A2B = sample(A, B)
-    
+
 
 # ==============================================================================
 # =                                    run                                     =
@@ -300,23 +318,24 @@ py.mkdir(valid_dir)
 # Restore the checkpoint from 1 to the last epoch, save the validation plot data
 checkDir = checkpoint.directory
 ep_step = 1000
-for ep in range(0, ep_step + 1):
+i_train = 0
+for ep in range(0, ep_cnt + 1):
     # Load model
     # try:
-    ep_cnt = tf.Variable(initial_value=0, trainable=False, dtype=tf.int64)
+    ep_cnt_recover = tf.Variable(initial_value=0, trainable=False, dtype=tf.int64)
     checkpoint_path = checkDir + '/ckpt-' + str(ep)
     tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A, D_A=D_A,
-                        D_B=D_B, ep_cnt=ep_cnt), checkDir).restore(checkpoint_path)
+                       D_B=D_B, ep_cnt=ep_cnt_recover), checkDir).restore(checkpoint_path)
     # except:
     #     break
 
-    print('Restored epoch: ', ep_cnt.numpy())
-    i = 0
+    print('Restored epoch: ', ep_cnt_recover.numpy())
 
     # Train restoration step (Save the loss values for each iteration, and save the plot after 5 iterations
     iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss = [
     ], [], [], [], [], [], [], [], []
     # Restore the loss values for the training also
+
     for A, B in tqdm.tqdm(A_B_dataset, desc='Training Epoch Loop', total=len_dataset):
         A2B, B2A, valid_G_loss = valid_G(A, B)
         valid_D_loss = valid_D(A, B, A2B, B2A)
@@ -328,11 +347,12 @@ for ep in range(0, ep_step + 1):
         B2B_id_loss.append(valid_G_loss['B2B_id_loss'])
         A_d_loss.append(valid_D_loss['A_d_loss'])
         B_d_loss.append(valid_D_loss['B_d_loss'])
-        iterations.append(G_optimizer.iterations.numpy())
+        iterations.append(i_train)
+        i_train += 1
 
-    
     # Valid step (Save the loss values for each iteration, and save the plot after 5 iterations
     iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid = [], [], [], [], [], [], [], [], []
+    i = 0
     for A, B in tqdm.tqdm(A_B_dataset_valid, desc='Valid Epoch Loop', total=valid_len_dataset):
         A2B, B2A, valid_G_results = valid_G(A, B)
         valid_D_results = valid_D(A, B, A2B, B2A)
@@ -344,23 +364,28 @@ for ep in range(0, ep_step + 1):
         B2B_id_loss_valid.append(valid_G_results['B2B_id_loss'])
         A_d_loss_valid.append(valid_D_results['A_d_loss'])
         B_d_loss_valid.append(valid_D_results['B_d_loss'])
-        iterations_valid.append(G_optimizer.iterations.numpy())
+        iterations_valid.append(i)
+        i += 1
 
-    if ep != 0 and (ep-1) % 1 == 0:
+    if ep != 0 and (ep-1) % 5 == 0:
         A, B = next(test_iter)
         A2B, B2A, A2B2A, B2A2B = sample(A, B)
         img = im.immerge(np.concatenate(
             [A, A2B, B, B2A], axis=0), n_rows=2)
-        im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' %
-                                G_optimizer.iterations.numpy()))
-        A, B = next(valid_iter)
+        # im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' %
+                                # G_optimizer.iterations.numpy()))
+        im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % i_train))
+        try: 
+            A, B = next(valid_iter)
+        except:
+            valid_iter = iter(A_B_dataset_valid)
+            A, B = next(valid_iter)
         A2B, B2A, A2B2A, B2A2B = sample(A, B)
         img = im.immerge(np.concatenate(
             [A, A2B, B, B2A], axis=0), n_rows=2)
-        im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' %
-                                G_optimizer.iterations.numpy()))
-
-
+        # im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' %
+        #                         G_optimizer.iterations.numpy()))
+        im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' % i_train))
 
     # Save the loss validation data for each iteration into a separate file
     save_plot_data(iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid,
@@ -369,3 +394,8 @@ for ep in range(0, ep_step + 1):
     # Save the loss training data for each iteration into a separate file
     save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss,
                    B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, "training")
+    temporary_plot(g_loss_dir, d_loss_dir, cycle_loss_dir, id_loss_dir, iterations, A2B_g_loss,
+                   B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep)
+
+    temporary_plot(g_loss_validation_dir, d_loss_validation_dir, cycle_loss_validation_dir, id_loss_validation_dir, iterations_valid, A2B_g_loss_valid,
+                   B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid, ep)
