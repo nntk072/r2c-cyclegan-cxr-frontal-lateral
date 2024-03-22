@@ -164,17 +164,19 @@ def main():
     # plt.show()
     # plt.savefig(f'output/plot_figure/loss_vs_iterations_{start_epoch}_to_{end_epoch}.png')
 
-def save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, name):
+def save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, name, method):
     """Save the loss data for each iteration into a separate file."""
-    np.save(f'output/plot_data/{name}/loss_A2B_g_loss_{ep}.npy', A2B_g_loss)
-    np.save(f'output/plot_data/{name}/loss_B2A_g_loss_{ep}.npy', B2A_g_loss)
-    np.save(f'output/plot_data/{name}/loss_A2B2A_cycle_loss_{ep}.npy', A2B2A_cycle_loss)
-    np.save(f'output/plot_data/{name}/loss_B2A2B_cycle_loss_{ep}.npy', B2A2B_cycle_loss)
-    np.save(f'output/plot_data/{name}/loss_A2A_id_loss_{ep}.npy', A2A_id_loss)
-    np.save(f'output/plot_data/{name}/loss_B2B_id_loss_{ep}.npy', B2B_id_loss)
-    np.save(f'output/plot_data/{name}/loss_A_d_loss_{ep}.npy', A_d_loss)
-    np.save(f'output/plot_data/{name}/loss_B_d_loss_{ep}.npy', B_d_loss)
-    np.save(f'output/plot_data/{name}/iterations_{ep}.npy', iterations)
+    np.save(f'output/{method}/plot_data/{name}/loss_A2B_g_loss_{ep}.npy', A2B_g_loss)
+    np.save(f'output/{method}/plot_data/{name}/loss_B2A_g_loss_{ep}.npy', B2A_g_loss)
+    np.save(f'output/{method}/plot_data/{name}/loss_A2B2A_cycle_loss_{ep}.npy', A2B2A_cycle_loss)
+    np.save(f'output/{method}/plot_data/{name}/loss_B2A2B_cycle_loss_{ep}.npy', B2A2B_cycle_loss)
+    np.save(f'output/{method}/plot_data/{name}/loss_A2A_id_loss_{ep}.npy', A2A_id_loss)
+    np.save(f'output/{method}/plot_data/{name}/loss_B2B_id_loss_{ep}.npy', B2B_id_loss)
+    np.save(f'output/{method}/plot_data/{name}/loss_A_d_loss_{ep}.npy', A_d_loss)
+    np.save(f'output/{method}/plot_data/{name}/loss_B_d_loss_{ep}.npy', B_d_loss)
+    np.save(f'output/{method}/plot_data/{name}/iterations_{ep}.npy', iterations)
+    
+    
 
 
 def temporary_plot(g_loss_dir, d_loss_dir, cycle_loss_dir, id_loss_dir, iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep):
