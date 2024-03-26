@@ -79,15 +79,77 @@ def ResnetGenerator(input_shape=(256, 256, 3),
     return keras.Model(inputs=inputs, outputs=h)
 
 
-def OpGenerator(input_shape=(256, 256, 3), q=1):
+# def OpGenerator(input_shape=(256, 256, 3), q=1):
 
-    dim = 64
-    Norm = tfa.layers.InstanceNormalization
+#     dim = 64
+#     Norm = tfa.layers.InstanceNormalization
+
+#     def _residual_block(x):
+#         dim = x.shape[-1]
+#         x1 = tf.nn.tanh(x)
+#         h = x1
+
+#         h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+#         h = Oper2D(dim, 3, q=q, padding='valid', use_bias=False)(h)
+#         h = Norm()(h)
+#         h = tf.nn.tanh(h)
+
+#         h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+#         h = Oper2D(dim, 3, q=q, padding='valid', use_bias=False)(h)
+#         h = Norm()(h)
+
+#         return tf.nn.tanh(tf.keras.layers.add([x, h]))
+
+#     h = inputs = tf.keras.Input(shape=input_shape)
+
+#     dim *= 2
+#     h = Oper2D(dim, 3, strides=2, q=q, padding='same', use_bias=False)(h)
+#     h = Norm()(h)
+
+#     h = _residual_block(h)
+
+#     # # Classification branch.
+#     # x = tf.keras.layers.MaxPool2D(h.shape[1])(h)
+#     # x = tf.keras.layers.Flatten()(x)
+#     # y_class = tf.keras.layers.Dense(2, activation='softmax')(x)
+
+#     dim //= 2
+#     h = Oper2DTranspose(3, 3, strides=2, q=q, padding='same')(h)
+#     h = tf.nn.tanh(h)
+
+#     # return tf.keras.Model(inputs=inputs, outputs=[h, y_class])
+#     return tf.keras.Model(inputs=inputs, outputs=h)
+
+# def OpDiscriminator(input_shape=(256, 256, 3), q=1):
+#     dim = 64
+#     Norm = tfa.layers.InstanceNormalization
+
+#     h = inputs = tf.keras.Input(shape=input_shape)
+
+#     h = Oper2D(dim, 4, strides=2, q=q, padding='same')(h)
+#     h = tf.nn.leaky_relu(h, alpha=0.2)
+
+#     h = Oper2D(2 * dim, 4, strides=4, q=q, padding='same', use_bias=False)(h)
+#     h = Norm()(h)
+#     h = tf.nn.leaky_relu(h, alpha=0.2)
+
+#     h = Oper2D(1, 4, strides=1, q=q, padding='same')(h)
+#     h = tf.nn.leaky_relu(h, alpha=0.2)
+
+#     return tf.keras.Model(inputs=inputs, outputs=h)
+
+def OpGenerator(input_shape=(256, 256, 3),
+                output_channels=3,
+                dim=64,
+                n_downsamplings=2,
+                n_blocks=9,
+                norm='instance_norm',
+                q=1):
+    Norm = _get_norm_layer(norm)
 
     def _residual_block(x):
         dim = x.shape[-1]
-        x1 = tf.nn.tanh(x)
-        h = x1
+        h = x
 
         h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
         h = Oper2D(dim, 3, q=q, padding='valid', use_bias=False)(h)
@@ -98,46 +160,64 @@ def OpGenerator(input_shape=(256, 256, 3), q=1):
         h = Oper2D(dim, 3, q=q, padding='valid', use_bias=False)(h)
         h = Norm()(h)
 
-        return tf.nn.tanh(tf.keras.layers.add([x, h]))
+        return tf.nn.tanh(keras.layers.add([x, h]))
 
-    h = inputs = tf.keras.Input(shape=input_shape)
+    h = inputs = keras.Input(shape=input_shape)
 
-    dim *= 2
-    h = Oper2D(dim, 3, strides=2, q=q, padding='same', use_bias=False)(h)
+    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
+    h = Oper2D(dim, 7, q=q, padding='valid', use_bias=False)(h)
     h = Norm()(h)
-
-    h = _residual_block(h)
-
-    # # Classification branch.
-    # x = tf.keras.layers.MaxPool2D(h.shape[1])(h)
-    # x = tf.keras.layers.Flatten()(x)
-    # y_class = tf.keras.layers.Dense(2, activation='softmax')(x)
-
-    dim //= 2
-    h = Oper2DTranspose(3, 3, strides=2, q=q, padding='same')(h)
     h = tf.nn.tanh(h)
 
-    # return tf.keras.Model(inputs=inputs, outputs=[h, y_class])
-    return tf.keras.Model(inputs=inputs, outputs=h)
+    for _ in range(n_downsamplings):
+        dim *= 2
+        h = Oper2D(dim, 3, strides=2, q=q, padding='same', use_bias=False)(h)
+        h = Norm()(h)
+        h = tf.nn.tanh(h)
 
+    for _ in range(n_blocks):
+        h = _residual_block(h)
 
-def OpDiscriminator(input_shape=(256, 256, 3), q=1):
-    dim = 64
-    Norm = tfa.layers.InstanceNormalization
+    for _ in range(n_downsamplings):
+        dim //= 2
+        h = Oper2DTranspose(dim, 3, strides=2, q=q, padding='same', use_bias=False)(h)
+        h = Norm()(h)
+        h = tf.nn.tanh(h)
 
-    h = inputs = tf.keras.Input(shape=input_shape)
+    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
+    h = Oper2D(output_channels, 7, q=q, padding='valid')(h)
+    h = tf.tanh(h)
+
+    return keras.Model(inputs=inputs, outputs=h)
+def OpDiscriminator(input_shape=(256, 256, 3),
+                    dim=64,
+                    n_downsamplings=3,
+                    norm='instance_norm',
+                    q=1):
+    dim_ = dim
+    Norm = _get_norm_layer(norm)
+
+    h = inputs = keras.Input(shape=input_shape)
 
     h = Oper2D(dim, 4, strides=2, q=q, padding='same')(h)
     h = tf.nn.leaky_relu(h, alpha=0.2)
 
-    h = Oper2D(2 * dim, 4, strides=4, q=q, padding='same', use_bias=False)(h)
+    for _ in range(n_downsamplings - 1):
+        dim = min(dim * 2, dim_ * 8)
+        h = Oper2D(dim, 4, strides=2, q=q, padding='same', use_bias=False)(h)
+        h = Norm()(h)
+        h = tf.nn.leaky_relu(h, alpha=0.2)
+
+    dim = min(dim * 2, dim_ * 8)
+    h = Oper2D(dim, 4, strides=1, q=q, padding='same', use_bias=False)(h)
     h = Norm()(h)
     h = tf.nn.leaky_relu(h, alpha=0.2)
 
     h = Oper2D(1, 4, strides=1, q=q, padding='same')(h)
-    h = tf.nn.leaky_relu(h, alpha=0.2)
 
-    return tf.keras.Model(inputs=inputs, outputs=h)
+    return keras.Model(inputs=inputs, outputs=h)
+
+
 
 
 def ConvDiscriminator(input_shape=(256, 256, 3),

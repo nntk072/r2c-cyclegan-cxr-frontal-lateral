@@ -253,7 +253,7 @@ with train_summary_writer.as_default():
             iterations_valid.append(i)
             i += 1
 
-            if ep != 0 and (ep-1) % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
+            if (ep-1) % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
                 try:
                     A, B = next(valid_iter)
                 except:
