@@ -46,7 +46,7 @@ py.arg('--identity_loss_weight', type=float, default=0.0)
 py.arg('--pool_size', type=int, default=50)  # pool size to store fake samples
 # Order of the operational layer (q parameter).
 py.arg('--q', type=int, default=3)
-py.arg('--method', help='convolutional, operational, unet', default='unet')
+py.arg('--method', help='convolutional, operational, unet, anotherunet', default='unet')
 args = py.args()
 
 # output_dir

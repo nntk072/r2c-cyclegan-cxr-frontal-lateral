@@ -71,6 +71,15 @@ class model:
                 self.args.crop_size, self.args.crop_size, 3), q=None)
             self.set_D_B(input_shape=(
                 self.args.crop_size, self.args.crop_size, 3), q=None)
+        elif self.args.method == 'anotherunet':
+            self.set_G_A2B(input_shape=(
+                self.args.crop_size, self.args.crop_size, 3), q=None)
+            self.set_G_B2A(input_shape=(
+                self.args.crop_size, self.args.crop_size, 3), q=None)
+            self.set_D_A(input_shape=(
+                self.args.crop_size, self.args.crop_size, 3), q=None)
+            self.set_D_B(input_shape=(
+                self.args.crop_size, self.args.crop_size, 3), q=None)
         else:
             print('Undefined filtering method!')
 
@@ -81,6 +90,8 @@ class model:
             self.G_A2B = module.ResnetGenerator(input_shape=input_shape)
         elif self.args.method == 'unet':
             self.G_A2B = module.UNetGenerator(input_shape=input_shape)
+        elif self.args.method == 'anotherunet':
+            self.G_A2B = module.AnotherUNetGenerator(input_shape=input_shape)
         else:
             print('Undefined filtering method!')
 
@@ -91,6 +102,8 @@ class model:
             self.G_B2A = module.ResnetGenerator(input_shape=input_shape)
         elif self.args.method == 'unet':
             self.G_B2A = module.UNetGenerator(input_shape=input_shape)
+        elif self.args.method == 'anotherunet':
+            self.G_B2A = module.AnotherUNetGenerator(input_shape=input_shape)
         else:
             print('Undefined filtering method!')
 
@@ -101,6 +114,8 @@ class model:
             self.D_A = module.ConvDiscriminator(input_shape=input_shape)
         elif self.args.method == 'unet':
             self.D_A = module.UNetDiscriminator(input_shape=input_shape)
+        elif self.args.method == 'anotherunet':
+            self.D_A = module.AnotherUNetDiscriminator(input_shape=input_shape)
         else:
             print('Undefined filtering method!')
 
@@ -111,6 +126,8 @@ class model:
             self.D_B = module.ConvDiscriminator(input_shape=input_shape)
         elif self.filter == 'unet':
             self.D_B = module.UNetDiscriminator(input_shape=input_shape)
+        elif self.filter == 'anotherunet':
+            self.D_B = module.AnotherUNetDiscriminator(input_shape=input_shape)
         else:
             print('Undefined filtering method!')
 

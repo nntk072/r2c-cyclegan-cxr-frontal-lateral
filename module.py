@@ -362,6 +362,78 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
     return keras.Model(inputs=inputs, outputs=h)
 
 
+def AnotherUNetGenerator(input_shape=(256, 256, 3), num_classes=3, filters=[32, 64, 128, 256, 512], dropout_rate=0.5, activation='elu', kernel_initializer='he_normal', padding='same'):
+    inputs = tf.keras.Input(shape=input_shape)
+
+    conv_blocks = []
+    pool_layers = []
+
+    # Downward path
+    x = inputs
+    for filter_size in filters[:-1]:
+        x = keras.layers.Conv2D(filter_size, (3, 3), activation=activation,
+                                kernel_initializer=kernel_initializer, padding=padding)(x)
+        x = tf.keras.layers.Dropout(dropout_rate)(x)
+        x = keras.layers.Conv2D(filter_size, (3, 3), activation=activation,
+                                kernel_initializer=kernel_initializer, padding=padding)(x)
+        x = tf.keras.layers.Dropout(dropout_rate)(x)
+        conv_blocks.append(x)
+        pool = tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2))(x)
+        pool_layers.append(pool)
+        x = pool
+
+    # Bottom
+    x = keras.layers.Conv2D(filters[-1], (3, 3), activation=activation,
+                            kernel_initializer=kernel_initializer, padding=padding)(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
+    x = keras.layers.Conv2D(filters[-1], (3, 3), activation=activation,
+                            kernel_initializer=kernel_initializer, padding=padding)(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
+
+    # Upward path
+    for i, filter_size in enumerate(filters[:-1][::-1]):
+        x = keras.layers.Conv2DTranspose(filter_size, (2, 2),
+                                         strides=(2, 2), padding=padding)(x)
+        x = keras.layers.Concatenate(axis=3)([x, conv_blocks[-(i+1)]])
+
+        x = keras.layers.Conv2D(filter_size, (3, 3), activation=activation,
+                                kernel_initializer=kernel_initializer, padding=padding)(x)
+        x = tf.keras.layers.Dropout(dropout_rate)(x)
+        x = keras.layers.Conv2D(filter_size, (3, 3), activation=activation,
+                                kernel_initializer=kernel_initializer, padding=padding)(x)
+        x = tf.keras.layers.Dropout(dropout_rate)(x)
+
+    # Output layer
+    outputs = keras.layers.Conv2D(num_classes, (1, 1), activation='sigmoid',
+                                  kernel_initializer=kernel_initializer, padding=padding)(x)
+
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    return model
+
+
+def AnotherUNetDiscriminator(input_shape=(256, 256, 3)):
+    model = tf.keras.Sequential()
+
+    model.add(keras.layers.Conv2D(64, (3, 3), strides=(2, 2),
+              padding='same', input_shape=input_shape))
+    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+
+    model.add(keras.layers.Conv2D(128, (3, 3), strides=(2, 2), padding='same'))
+    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+
+    model.add(keras.layers.Conv2D(256, (3, 3), strides=(2, 2), padding='same'))
+    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+
+    model.add(keras.layers.Conv2D(512, (3, 3), strides=(2, 2), padding='same'))
+    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dropout(0.4))
+    model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+
+    return model
+
+
 # ==============================================================================
 # =                          learning rate scheduler                           =
 # ==============================================================================
