@@ -198,10 +198,10 @@ with train_summary_writer.as_default():
 
         # psnr, ssim
         psnr_list, ssim_list = [], []
-        
+
         # train for an epoch
         for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
-            # for A, B in tqdm.tqdm(A_B_dataset.take(2000), desc='Inner Epoch Loop', total=2000):
+            # for A, B in tqdm.tqdm(A_B_dataset.take(10), desc='Inner Epoch Loop', total=len_dataset):
 
             G_loss_dict, D_loss_dict = train_step(A, B)
 
@@ -227,7 +227,9 @@ with train_summary_writer.as_default():
 
             iterations.append(model.G_optimizer.iterations.numpy())
             if ep != 0 and (ep-1) % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
-            # if model.G_optimizer.iterations.numpy() % 100:
+                # Plotting 1 epoch for debugging
+                # if ep != 0 and model.G_optimizer.iterations.numpy() % 10 == 0:  # 1/5 epoch
+                # if model.G_optimizer.iterations.numpy() % 100:
                 A, B = next(test_iter)
                 A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
                 img = im.immerge(np.concatenate(
@@ -240,6 +242,7 @@ with train_summary_writer.as_default():
 
         i = 0
         for A, B in tqdm.tqdm(A_B_dataset_valid, desc='Valid Epoch Loop', total=valid_len_dataset):
+            # for A, B in tqdm.tqdm(A_B_dataset_valid.take(15), desc='Valid Epoch Loop', total=valid_len_dataset):
             A2B, B2A, valid_G_results = model.valid_G(A, B)
             valid_D_results = model.valid_D(A, B, A2B, B2A)
             A2B_g_loss_valid.append(valid_G_results['A2B_g_loss'])
@@ -278,8 +281,6 @@ with train_summary_writer.as_default():
 
         temporary_plot(g_loss_validation_dir, d_loss_validation_dir, cycle_loss_validation_dir, id_loss_validation_dir, iterations_valid, A2B_g_loss_valid,
                        B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid, ep)
-        
-        
-        
+
         # save checkpoint
         checkpoint.save(ep)

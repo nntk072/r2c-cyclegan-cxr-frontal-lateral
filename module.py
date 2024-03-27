@@ -362,74 +362,150 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
     return keras.Model(inputs=inputs, outputs=h)
 
 
-def AnotherUNetGenerator(input_shape=(256, 256, 3), num_classes=3, filters=[32, 64, 128, 256, 512], dropout_rate=0.5, activation='elu', kernel_initializer='he_normal', padding='same'):
-    inputs = tf.keras.Input(shape=input_shape)
+def AnotherUNetGenerator(input_shape=(256, 256, 3),
+                         num_classes=3,
+                         filters=[64, 128, 256, 512],
+                         dropout_rate=0.5,
+                         activation='elu',
+                         padding='same',
+                         norm='instance_norm'
+                         ):
 
+    inputs = tf.keras.Input(shape=input_shape)
+    Norm = _get_norm_layer(norm)
     conv_blocks = []
     pool_layers = []
 
+    h = inputs
+
     # Downward path
-    x = inputs
     for filter_size in filters[:-1]:
-        x = keras.layers.Conv2D(filter_size, (3, 3), activation=activation,
-                                kernel_initializer=kernel_initializer, padding=padding)(x)
-        x = tf.keras.layers.Dropout(dropout_rate)(x)
-        x = keras.layers.Conv2D(filter_size, (3, 3), activation=activation,
-                                kernel_initializer=kernel_initializer, padding=padding)(x)
-        x = tf.keras.layers.Dropout(dropout_rate)(x)
-        conv_blocks.append(x)
-        pool = tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2))(x)
+        if filter_size == 64:
+            h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
+            h = keras.layers.Conv2D(
+                filter_size, 7, padding='valid', use_bias=False)(h)
+            h = Norm()(h)
+            h = tf.nn.relu(h)
+            h = tf.keras.layers.Dropout(dropout_rate)(h)
+        elif filter_size == 256:
+            h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
+            h = Norm()(h)
+            h = tf.nn.relu(h)
+            h = tf.keras.layers.Dropout(dropout_rate)(h)
+            h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
+            h = Norm()(h)
+            h = tf.nn.relu(h)
+            h = tf.keras.layers.Dropout(dropout_rate)(h)
+            
+            x = h
+            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+            x = keras.layers.Conv2D(
+                filter_size, 3, padding='valid', use_bias=False)(x)
+            x = Norm()(x)
+            x = tf.nn.relu(x)
+            x = tf.keras.layers.Dropout(dropout_rate)(x)
+
+            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+            x = keras.layers.Conv2D(filter_size, 3, padding='valid', use_bias=False)(x)
+            x = Norm()(x)
+            x = tf.nn.relu(x)
+            x = tf.keras.layers.Dropout(dropout_rate)(x)
+            h = keras.layers.add([h, x])
+
+            x = h
+            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+            x = keras.layers.Conv2D(
+                filter_size, 3, padding='valid', use_bias=False)(x)
+            x = Norm()(x)
+            x = tf.nn.relu(x)
+            x = tf.keras.layers.Dropout(dropout_rate)(x)
+
+            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+            x = keras.layers.Conv2D(filter_size, 3, padding='valid', use_bias=False)(x)
+            x = Norm()(x)
+            x = tf.nn.relu(x)
+            x = tf.keras.layers.Dropout(dropout_rate)(x)
+            h = keras.layers.add([h, x])
+
+            x = h
+            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+            x = keras.layers.Conv2D(
+                filter_size, 3, padding='valid', use_bias=False)(x)
+            x = Norm()(x)
+            x = tf.nn.relu(x)
+            x = tf.keras.layers.Dropout(dropout_rate)(x)
+
+            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+            x = keras.layers.Conv2D(filter_size, 3, padding='valid', use_bias=False)(x)
+            x = Norm()(x)
+            x = tf.nn.relu(x)
+            x = tf.keras.layers.Dropout(dropout_rate)(x)
+            h = keras.layers.add([h, x])
+
+        else:
+            h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
+            h = Norm()(h)
+            h = tf.nn.relu(h)
+            h = tf.keras.layers.Dropout(dropout_rate)(h)
+            h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
+            h = Norm()(h)
+            h = tf.nn.relu(h)
+            h = tf.keras.layers.Dropout(dropout_rate)(h)
+        conv_blocks.append(h)
+        pool = tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2))(h)
         pool_layers.append(pool)
-        x = pool
+        h = pool
 
     # Bottom
-    x = keras.layers.Conv2D(filters[-1], (3, 3), activation=activation,
-                            kernel_initializer=kernel_initializer, padding=padding)(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    x = keras.layers.Conv2D(filters[-1], (3, 3), activation=activation,
-                            kernel_initializer=kernel_initializer, padding=padding)(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
+    h = keras.layers.Conv2D(filters[-1], (3, 3),
+                            padding=padding)(h)
+    h = Norm()(h)
+    h = tf.nn.relu(h)
+    h = tf.keras.layers.Dropout(dropout_rate)(h)
+    h = keras.layers.Conv2D(filters[-1], (3, 3),
+                            padding=padding)(h)
+    h = Norm()(h)
+    h = tf.nn.relu(h)
+    h = tf.keras.layers.Dropout(dropout_rate)(h)
 
     # Upward path
     for i, filter_size in enumerate(filters[:-1][::-1]):
-        x = keras.layers.Conv2DTranspose(filter_size, (2, 2),
-                                         strides=(2, 2), padding=padding)(x)
-        x = keras.layers.Concatenate(axis=3)([x, conv_blocks[-(i+1)]])
-
-        x = keras.layers.Conv2D(filter_size, (3, 3), activation=activation,
-                                kernel_initializer=kernel_initializer, padding=padding)(x)
-        x = tf.keras.layers.Dropout(dropout_rate)(x)
-        x = keras.layers.Conv2D(filter_size, (3, 3), activation=activation,
-                                kernel_initializer=kernel_initializer, padding=padding)(x)
-        x = tf.keras.layers.Dropout(dropout_rate)(x)
+        h = keras.layers.Conv2DTranspose(filter_size, (2, 2),
+                                         strides=(2, 2), padding=padding)(h)
+        h = Norm()(h)
+        h = tf.nn.relu(h)
+        h = keras.layers.Concatenate(axis=3)([h, conv_blocks[-(i+1)]])
+        h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
+        h = Norm()(h)
+        h = tf.nn.relu(h)
+        h = tf.keras.layers.Dropout(dropout_rate)(h)
+        h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
+        h = Norm()(h)
+        h = tf.nn.relu(h)
+        h = tf.keras.layers.Dropout(dropout_rate)(h)
 
     # Output layer
     outputs = keras.layers.Conv2D(num_classes, (1, 1), activation='sigmoid',
-                                  kernel_initializer=kernel_initializer, padding=padding)(x)
+                                  padding=padding)(h)
 
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
     return model
 
 
-def AnotherUNetDiscriminator(input_shape=(256, 256, 3)):
-    model = tf.keras.Sequential()
+def AnotherUnetDiscriminator(input_shape=(256, 256, 3),
+                  filters=[64, 128, 256, 512]):
 
-    model.add(keras.layers.Conv2D(64, (3, 3), strides=(2, 2),
-              padding='same', input_shape=input_shape))
-    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+    inputs = tf.keras.Input(shape=input_shape)
+    h = inputs
 
-    model.add(keras.layers.Conv2D(128, (3, 3), strides=(2, 2), padding='same'))
-    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+    for filter_size in filters:
+        h = tf.keras.layers.Conv2D(filter_size, (4, 4), strides=(2, 2), padding='same')(h)
+        h = tf.keras.layers.LeakyReLU(alpha=0.2)(h)
 
-    model.add(keras.layers.Conv2D(256, (3, 3), strides=(2, 2), padding='same'))
-    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+    h = tf.keras.layers.Conv2D(1, (4, 4), strides=(1, 1), padding='same')(h)
+    outputs = tf.keras.activations.sigmoid(h)
 
-    model.add(keras.layers.Conv2D(512, (3, 3), strides=(2, 2), padding='same'))
-    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
-
-    model.add(tf.keras.layers.Flatten())
-    model.add(tf.keras.layers.Dropout(0.4))
-    model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
 
     return model
 

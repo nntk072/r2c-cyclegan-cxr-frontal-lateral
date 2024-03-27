@@ -115,7 +115,7 @@ class model:
         elif self.args.method == 'unet':
             self.D_A = module.UNetDiscriminator(input_shape=input_shape)
         elif self.args.method == 'anotherunet':
-            self.D_A = module.AnotherUNetDiscriminator(input_shape=input_shape)
+            self.D_A = module.AnotherUnetDiscriminator(input_shape=input_shape)
         else:
             print('Undefined filtering method!')
 
@@ -127,7 +127,7 @@ class model:
         elif self.filter == 'unet':
             self.D_B = module.UNetDiscriminator(input_shape=input_shape)
         elif self.filter == 'anotherunet':
-            self.D_B = module.AnotherUNetDiscriminator(input_shape=input_shape)
+            self.D_B = module.AnotherUnetDiscriminator(input_shape=input_shape)
         else:
             print('Undefined filtering method!')
 
