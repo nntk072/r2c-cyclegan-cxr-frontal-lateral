@@ -485,10 +485,13 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
         h = tf.keras.layers.Dropout(dropout_rate)(h)
 
     # Output layer
-    outputs = keras.layers.Conv2D(num_classes, (1, 1), activation='sigmoid',
-                                  padding=padding)(h)
-
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    # outputs = keras.layers.Conv2D(num_classes, (1, 1), activation='sigmoid',
+    #                               padding=padding)(h)
+    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
+    h = keras.layers.Conv2D(num_classes, 7, padding='valid')(h)
+    h = tf.tanh(h)
+    model = tf.keras.Model(inputs=inputs, outputs=h)
+    
     return model
 
 

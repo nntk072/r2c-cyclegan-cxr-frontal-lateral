@@ -212,12 +212,12 @@ class model:
         A2A_id_loss = self.identity_loss_fn(A, A2A)
         B2B_id_loss = self.identity_loss_fn(B, B2B)
 
-        return A2B, B2A, {'A2B_g_loss': A2B_g_loss,
-                        'B2A_g_loss': B2A_g_loss,
-                        'A2B2A_cycle_loss': A2B2A_cycle_loss,
-                        'B2A2B_cycle_loss': B2A2B_cycle_loss,
-                        'A2A_id_loss': A2A_id_loss,
-                        'B2B_id_loss': B2B_id_loss}
+        return A2B, B2A, {'A2B_g_loss_valid': A2B_g_loss,
+                        'B2A_g_loss_valid': B2A_g_loss,
+                        'A2B2A_cycle_loss_valid': A2B2A_cycle_loss,
+                        'B2A2B_cycle_loss_valid': B2A2B_cycle_loss,
+                        'A2A_id_loss_valid': A2A_id_loss,
+                        'B2B_id_loss_valid': B2B_id_loss}
     @tf.function
     def valid_D(self, A, B, A2B, B2A):
         A_d_logits = self.D_A(A, training=False)
@@ -232,10 +232,10 @@ class model:
         D_B_gp = gan.gradient_penalty(functools.partial(
             self.D_B, training=False), B, A2B, mode=self.args.gradient_penalty_mode)
 
-        return {'A_d_loss': A_d_loss + B2A_d_loss,
-                'B_d_loss': B_d_loss + A2B_d_loss,
-                'D_A_gp': D_A_gp,
-                'D_B_gp': D_B_gp}
+        return {'A_d_loss_valid': A_d_loss + B2A_d_loss,
+                'B_d_loss_valid': B_d_loss + A2B_d_loss,
+                'D_A_gp_valid': D_A_gp,
+                'D_B_gp_valid': D_B_gp}
     
     @tf.function
     def sample(self, A, B):
