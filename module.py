@@ -2,7 +2,8 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 import tensorflow.keras as keras
 from layers import Oper2D, Oper2DTranspose
-from tensorflow.keras.layers import UpSampling2D
+from layers import downsample, upsample
+
 # ==============================================================================
 # =                                  networks                                  =
 # ==============================================================================
@@ -260,106 +261,112 @@ def OpDiscriminator(input_shape=(256, 256, 3),
 
 def UNetGenerator(input_shape=(256, 256, 3),
                   output_channels=3,
-                  dim=64,
-                  n_downsamplings=2,
-                  n_blocks=9,
                   norm='instance_norm'):
+    """Modified u-net generator model (https://arxiv.org/abs/1611.07004).
+
+    Args:
+      output_channels: Output channels
+      norm: Type of normalization. Either 'batch_norm' or 'instance_norm'.
+
+    Returns:
+      Generator model
+    """
     Norm = _get_norm_layer(norm)
+    down_stack = [
+        downsample(64, 4, norm, apply_norm=False),  # (bs, 128, 128, 64)
+        downsample(128, 4, norm),  # (bs, 64, 64, 128)
+        downsample(256, 4, norm),  # (bs, 32, 32, 256)
+        downsample(512, 4, norm),  # (bs, 16, 16, 512)
+        downsample(512, 4, norm),  # (bs, 8, 8, 512)
+        downsample(512, 4, norm),  # (bs, 4, 4, 512)
+        downsample(512, 4, norm),  # (bs, 2, 2, 512)
+        downsample(512, 4, norm),  # (bs, 1, 1, 512)
+    ]
 
-    def _residual_block(x):
-        dim = x.shape[-1]
-        h = x
+    up_stack = [
+        upsample(512, 4, norm, apply_dropout=True),  # (bs, 2, 2, 1024)
+        upsample(512, 4, norm, apply_dropout=True),  # (bs, 4, 4, 1024)
+        upsample(512, 4, norm, apply_dropout=True),  # (bs, 8, 8, 1024)
+        upsample(512, 4, norm),  # (bs, 16, 16, 1024)
+        upsample(256, 4, norm),  # (bs, 32, 32, 512)
+        upsample(128, 4, norm),  # (bs, 64, 64, 256)
+        upsample(64, 4, norm),  # (bs, 128, 128, 128)
+    ]
 
-        h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-        h = keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
-        h = Norm()(h)
-        h = tf.nn.relu(h)
+    initializer = tf.random_normal_initializer(0., 0.02)
+    last = tf.keras.layers.Conv2DTranspose(
+        output_channels, 4, strides=2,
+        padding='same', kernel_initializer=initializer,
+        activation='tanh')  # (bs, 256, 256, 3)
 
-        h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-        h = keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
-        h = Norm()(h)
+    concat = tf.keras.layers.Concatenate()
 
-        return keras.layers.add([x, h])
+    inputs = tf.keras.layers.Input(shape=[None, None, 3])
+    x = inputs
 
-    # 0
-    h = inputs = keras.Input(shape=input_shape)
+    # Downsampling through the model
     skips = []
+    for down in down_stack:
+        x = down(x)
+        skips.append(x)
 
-    # 1
-    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
-    h = keras.layers.Conv2D(dim, 7, padding='valid', use_bias=False)(h)
-    h = Norm()(h)
-    h = tf.nn.relu(h)
+    skips = reversed(skips[:-1])
 
-    # 2
-    for _ in range(n_downsamplings):
-        dim *= 2
-        h = keras.layers.Conv2D(
-            dim, 3, strides=2, padding='same', use_bias=False)(h)
-        h = Norm()(h)
-        h = tf.nn.relu(h)
-        skips.append(h)
+    # Upsampling and establishing the skip connections
+    for up, skip in zip(up_stack, skips):
+        x = up(x)
+        x = concat([x, skip])
 
-    # 3
-    for _ in range(n_blocks):
-        h = _residual_block(h)
+    x = last(x)
 
-    # 4
-    for _ in reversed(range(n_downsamplings)):
-        dim //= 2
-        h = keras.layers.Conv2DTranspose(
-            dim, 3, strides=2, padding='same', use_bias=False)(h)
-        h = Norm()(h)
-        h = tf.nn.relu(h)
-
-        h = keras.layers.Concatenate()(
-            [h,  UpSampling2D(size=(2, 2))(skips[_])])
-
-    # 5
-    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
-    h = keras.layers.Conv2D(output_channels, 7, padding='valid')(h)
-    h = tf.tanh(h)
-
-    return keras.Model(inputs=inputs, outputs=h)
+    return tf.keras.Model(inputs=inputs, outputs=x)
 
 
 def UNetDiscriminator(input_shape=(256, 256, 3),
-                      dim=64,
-                      n_downsamplings=3,
-                      norm='instance_norm'):
-    dim_ = dim
+                      norm='instance_norm',
+                      target=False):
+    """PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
+
+    Args:
+      norm: Type of normalization. Either 'batch_norm' or 'instance_norm'.
+      target: Bool, indicating whether target image is an input or not.
+
+    Returns:
+      Discriminator model
+    """
     Norm = _get_norm_layer(norm)
+    initializer = tf.random_normal_initializer(0., 0.02)
 
-    # 0
-    h = inputs = keras.Input(shape=input_shape)
-    skips = []
+    inp = tf.keras.layers.Input(shape=[None, None, 3], name='input_image')
+    x = inp
 
-    # 1
-    h = keras.layers.Conv2D(dim, 4, strides=2, padding='same')(h)
-    h = tf.nn.leaky_relu(h, alpha=0.2)
-    skips.append(h)
+    if target:
+        tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
+        x = tf.keras.layers.concatenate(
+            [inp, tar])  # (bs, 256, 256, channels*2)
 
-    for _ in range(n_downsamplings - 1):
-        dim = min(dim * 2, dim_ * 8)
-        h = keras.layers.Conv2D(
-            dim, 4, strides=2, padding='same', use_bias=False)(h)
-        h = Norm()(h)
-        h = tf.nn.leaky_relu(h, alpha=0.2)
-        skips.append(h)
+    down1 = downsample(64, 4, norm, False)(x)  # (bs, 128, 128, 64)
+    down2 = downsample(128, 4, norm)(down1)  # (bs, 64, 64, 128)
+    down3 = downsample(256, 4, norm)(down2)  # (bs, 32, 32, 256)
 
-    # 2
-    for _ in reversed(range(n_downsamplings - 1)):
-        dim //= 2
-        h = keras.layers.Conv2DTranspose(
-            dim, 4, strides=2, padding='same', use_bias=False)(h)
-        h = Norm()(h)
-        h = tf.nn.leaky_relu(h, alpha=0.2)
-        h = keras.layers.Concatenate()([h, skips[_]])
+    zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
+    conv = tf.keras.layers.Conv2D(
+        512, 4, strides=1, kernel_initializer=initializer,
+        use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
 
-    # 3
-    h = keras.layers.Conv2D(1, 4, strides=1, padding='same')(h)
+    norm1 = Norm()(conv)
+    leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
 
-    return keras.Model(inputs=inputs, outputs=h)
+    zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
+
+    last = tf.keras.layers.Conv2D(
+        1, 4, strides=1,
+        kernel_initializer=initializer)(zero_pad2)  # (bs, 30, 30, 1)
+
+    if target:
+        return tf.keras.Model(inputs=[inp, tar], outputs=last)
+    else:
+        return tf.keras.Model(inputs=inp, outputs=last)
 
 
 def AnotherUNetGenerator(input_shape=(256, 256, 3),
@@ -396,7 +403,7 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
             h = Norm()(h)
             h = tf.nn.relu(h)
             h = tf.keras.layers.Dropout(dropout_rate)(h)
-            
+
             x = h
             x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
             x = keras.layers.Conv2D(
@@ -406,7 +413,8 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
             x = tf.keras.layers.Dropout(dropout_rate)(x)
 
             x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-            x = keras.layers.Conv2D(filter_size, 3, padding='valid', use_bias=False)(x)
+            x = keras.layers.Conv2D(
+                filter_size, 3, padding='valid', use_bias=False)(x)
             x = Norm()(x)
             x = tf.nn.relu(x)
             x = tf.keras.layers.Dropout(dropout_rate)(x)
@@ -421,7 +429,8 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
             x = tf.keras.layers.Dropout(dropout_rate)(x)
 
             x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-            x = keras.layers.Conv2D(filter_size, 3, padding='valid', use_bias=False)(x)
+            x = keras.layers.Conv2D(
+                filter_size, 3, padding='valid', use_bias=False)(x)
             x = Norm()(x)
             x = tf.nn.relu(x)
             x = tf.keras.layers.Dropout(dropout_rate)(x)
@@ -436,7 +445,8 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
             x = tf.keras.layers.Dropout(dropout_rate)(x)
 
             x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-            x = keras.layers.Conv2D(filter_size, 3, padding='valid', use_bias=False)(x)
+            x = keras.layers.Conv2D(
+                filter_size, 3, padding='valid', use_bias=False)(x)
             x = Norm()(x)
             x = tf.nn.relu(x)
             x = tf.keras.layers.Dropout(dropout_rate)(x)
@@ -491,18 +501,19 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
     h = keras.layers.Conv2D(num_classes, 7, padding='valid')(h)
     h = tf.tanh(h)
     model = tf.keras.Model(inputs=inputs, outputs=h)
-    
+
     return model
 
 
 def AnotherUnetDiscriminator(input_shape=(256, 256, 3),
-                  filters=[64, 128, 256, 512]):
+                             filters=[64, 128, 256, 512]):
 
     inputs = tf.keras.Input(shape=input_shape)
     h = inputs
 
     for filter_size in filters:
-        h = tf.keras.layers.Conv2D(filter_size, (4, 4), strides=(2, 2), padding='same')(h)
+        h = tf.keras.layers.Conv2D(
+            filter_size, (4, 4), strides=(2, 2), padding='same')(h)
         h = tf.keras.layers.LeakyReLU(alpha=0.2)(h)
 
     h = tf.keras.layers.Conv2D(1, (4, 4), strides=(1, 1), padding='same')(h)

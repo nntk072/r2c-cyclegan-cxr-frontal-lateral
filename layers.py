@@ -1,67 +1,141 @@
 import tensorflow as tf
+import tensorflow_addons as tfa
 import numpy as np
 
 ####################################################
 # Operational Layers.
+
+
 class Oper2D(tf.keras.Model):
-  def __init__(self, filters, kernel_size, activation = None, q = 1, padding = 'valid', use_bias=True, strides=1):
-    super(Oper2D, self).__init__(name='')
+    def __init__(self, filters, kernel_size, activation=None, q=1, padding='valid', use_bias=True, strides=1):
+        super(Oper2D, self).__init__(name='')
 
-    self.activation = activation
-    self.q = q
-    self.all_layers = []
+        self.activation = activation
+        self.q = q
+        self.all_layers = []
 
-    for i in range(0, q):  # q convolutional layers.
-      self.all_layers.append(tf.keras.layers.Conv2D(filters,
-                                                    (kernel_size,
-                                                      kernel_size),
-                                                    padding=padding,
-                                                    use_bias=use_bias,
-                                                    strides = strides,
-                                                    activation=None))
+        for i in range(0, q):  # q convolutional layers.
+            self.all_layers.append(tf.keras.layers.Conv2D(filters,
+                                                          (kernel_size,
+                                                           kernel_size),
+                                                          padding=padding,
+                                                          use_bias=use_bias,
+                                                          strides=strides,
+                                                          activation=None))
 
-  @tf.function
-  def call(self, input_tensor, training=False):
-    
-    x = self.all_layers[0](input_tensor)  # First convolutional layer.
+    @tf.function
+    def call(self, input_tensor, training=False):
 
-    if self.q > 1:
-      for i in range(1, self.q):
-        x += self.all_layers[i](tf.math.pow(input_tensor, i + 1))
-    
-    if self.activation is not None:
-      return eval('tf.nn.' + self.activation + '(x)')
-    else:
-      return x
+        x = self.all_layers[0](input_tensor)  # First convolutional layer.
+
+        if self.q > 1:
+            for i in range(1, self.q):
+                x += self.all_layers[i](tf.math.pow(input_tensor, i + 1))
+
+        if self.activation is not None:
+            return eval('tf.nn.' + self.activation + '(x)')
+        else:
+            return x
 
 ####################################################
 # Transposed Operational Layers.
+
+
 class Oper2DTranspose(tf.keras.Model):
-  def __init__(self, filters, kernel_size, activation = None, q = 1, padding = 'valid', use_bias=True, strides=1):
-    super(Oper2DTranspose, self).__init__(name='')
+    def __init__(self, filters, kernel_size, activation=None, q=1, padding='valid', use_bias=True, strides=1):
+        super(Oper2DTranspose, self).__init__(name='')
 
-    self.activation = activation
-    self.q = q
-    self.all_layers = []
+        self.activation = activation
+        self.q = q
+        self.all_layers = []
 
-    for i in range(0, q):  # q convolutional layers.
-      self.all_layers.append(tf.keras.layers.Conv2DTranspose(filters,
-                                                    kernel_size,
-                                                    padding=padding,
-                                                    use_bias=use_bias,
-                                                    strides = strides,
-                                                    activation=None))
+        for i in range(0, q):  # q convolutional layers.
+            self.all_layers.append(tf.keras.layers.Conv2DTranspose(filters,
+                                                                   kernel_size,
+                                                                   padding=padding,
+                                                                   use_bias=use_bias,
+                                                                   strides=strides,
+                                                                   activation=None))
 
-  @tf.function
-  def call(self, input_tensor, training=False):
+    @tf.function
+    def call(self, input_tensor, training=False):
 
-    x = self.all_layers[0](input_tensor)  # First convolutional layer.
+        x = self.all_layers[0](input_tensor)  # First convolutional layer.
 
-    if self.q > 1:
-      for i in range(1, self.q):
-        x += self.all_layers[i](tf.math.pow(input_tensor, i + 1))
+        if self.q > 1:
+            for i in range(1, self.q):
+                x += self.all_layers[i](tf.math.pow(input_tensor, i + 1))
 
-    if self.activation is not None:
-      return eval('tf.nn.' + self.activation + '(x)')
-    else:
-      return x
+        if self.activation is not None:
+            return eval('tf.nn.' + self.activation + '(x)')
+        else:
+            return x
+
+
+def downsample(filters, size, norm_type='batch_norm', apply_norm=True):
+    """Downsamples an input.
+
+    Conv2D => batch_norm => LeakyRelu
+
+    Args:
+      filters: number of filters
+      size: filter size
+      norm_type: Normalization type; either 'batch_norm' or 'instance_norm'.
+      apply_norm: If True, adds the batch_norm layer
+
+    Returns:
+      Downsample Sequential Model
+    """
+    initializer = tf.random_normal_initializer(0., 0.02)
+
+    result = tf.keras.Sequential()
+    result.add(
+        tf.keras.layers.Conv2D(filters, size, strides=2, padding='same',
+                               kernel_initializer=initializer, use_bias=False))
+
+    if apply_norm:
+        if norm_type.lower() == 'batch_norm':
+            result.add(tf.keras.layers.batch_normalization())
+        elif norm_type.lower() == 'instance_norm':
+            result.add(tfa.layers.InstanceNormalization())
+
+    result.add(tf.keras.layers.LeakyReLU())
+
+    return result
+
+
+def upsample(filters, size, norm_type='instance_norm', apply_dropout=False):
+    """Upsamples an input.
+
+    Conv2DTranspose => instance_norm => Dropout => Relu
+
+    Args:
+      filters: number of filters
+      size: filter size
+      norm_type: Normalization type; either 'batch_norm' or 'instance_norm'.
+      apply_dropout: If True, adds the dropout layer
+
+    Returns:
+      Upsample Sequential Model
+    """
+
+    initializer = tf.random_normal_initializer(0., 0.02)
+
+    result = tf.keras.Sequential()
+    result.add(
+        tf.keras.layers.Conv2DTranspose(filters, size, strides=2,
+                                        padding='same',
+                                        kernel_initializer=initializer,
+                                        use_bias=False))
+
+    if norm_type.lower() == 'batch_norm':
+        result.add(tf.keras.layers.batch_normalization())
+    elif norm_type.lower() == 'instance_norm':
+        result.add(tfa.layers.InstanceNormalization())
+
+    if apply_dropout:
+        result.add(tf.keras.layers.Dropout(0.5))
+
+    result.add(tf.keras.layers.ReLU())
+
+    return result
