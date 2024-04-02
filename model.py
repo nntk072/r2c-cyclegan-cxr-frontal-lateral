@@ -6,7 +6,7 @@ import module
 
 
 class model:
-    def __init__(self,args):
+    def __init__(self, args):
         self.G_A2B = None
         self.G_B2A = None
 
@@ -14,7 +14,7 @@ class model:
         self.D_B = None
         self.args = args
         self.d_loss_fn, self.g_loss_fn = gan.get_adversarial_losses_fn(
-    args.adversarial_loss_mode)
+            args.adversarial_loss_mode)
         self.cycle_loss_fn = tf.losses.MeanAbsoluteError()
         self.identity_loss_fn = tf.losses.MeanAbsoluteError()
 
@@ -199,8 +199,6 @@ class model:
         B2A = self.G_B2A(B, training=False)
         A2B2A = self.G_B2A(A2B, training=False)
         B2A2B = self.G_A2B(B2A, training=False)
-        A2A = self.G_B2A(A, training=False)
-        B2B = self.G_A2B(B, training=False)
 
         A2B_d_logits = self.D_B(A2B, training=False)
         B2A_d_logits = self.D_A(B2A, training=False)
@@ -213,11 +211,12 @@ class model:
         B2B_id_loss = self.identity_loss_fn(B, B2B)
 
         return A2B, B2A, {'A2B_g_loss_valid': A2B_g_loss,
-                        'B2A_g_loss_valid': B2A_g_loss,
-                        'A2B2A_cycle_loss_valid': A2B2A_cycle_loss,
-                        'B2A2B_cycle_loss_valid': B2A2B_cycle_loss,
-                        'A2A_id_loss_valid': A2A_id_loss,
-                        'B2B_id_loss_valid': B2B_id_loss}
+                          'B2A_g_loss_valid': B2A_g_loss,
+                          'A2B2A_cycle_loss_valid': A2B2A_cycle_loss,
+                          'B2A2B_cycle_loss_valid': B2A2B_cycle_loss,
+                          'A2A_id_loss_valid': A2A_id_loss,
+                          'B2B_id_loss_valid': B2B_id_loss}
+
     @tf.function
     def valid_D(self, A, B, A2B, B2A):
         A_d_logits = self.D_A(A, training=False)
@@ -236,7 +235,7 @@ class model:
                 'B_d_loss_valid': B_d_loss + A2B_d_loss,
                 'D_A_gp_valid': D_A_gp,
                 'D_B_gp_valid': D_B_gp}
-    
+
     @tf.function
     def sample(self, A, B):
         A2B = self.G_A2B(A, training=False)

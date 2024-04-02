@@ -17,8 +17,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 py.arg('--experiment_dir', default='output/')
 py.arg('--batch_size', type=int, default=32)
+py.arg('--method', help='convolutional, operational, unet, anotherunet',
+       default='convolutional')
 test_args = py.args()
-args = py.args_from_yaml(py.join(test_args.experiment_dir, 'settings.yml'))
+args = py.args_from_yaml(
+    py.join(test_args.experiment_dir, test_args.method, 'settings.yml'))
 args.__dict__.update(test_args.__dict__)
 
 
@@ -42,7 +45,7 @@ G_B2A = module.ResnetGenerator(input_shape=(args.crop_size, args.crop_size, 3))
 
 # resotre
 tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    args.experiment_dir, 'checkpoints')).restore()
+    args.experiment_dir, args.method, 'checkpoints')).restore()
 
 
 @tf.function
@@ -60,7 +63,8 @@ def sample_B2A(B):
 
 
 # run
-save_dir = py.join(args.experiment_dir, 'samples_testing', 'A2B')
+save_dir = py.join(args.experiment_dir, args.method,
+                   'samples_testing', 'A2B')
 py.mkdir(save_dir)
 i = 0
 for A, B in zip(A_dataset_test, B_dataset_test):
@@ -70,11 +74,13 @@ for A, B in zip(A_dataset_test, B_dataset_test):
         # im.imwrite(img, py.join(save_dir, py.name_ext(A_img_paths_test[i])))
         # img = np.concatenate([A_i.numpy(), A2B_i.numpy(), B_i.numpy()], axis=1)
         # im.imwrite(img, py.join(save_dir, py.name_ext(A_img_paths_test[i])))
+
         ev.plot_images_A2B(A_i, A2B_i, B_i,
                            save_dir, A_img_paths_test[i])
         i += 1
 
-save_dir = py.join(args.experiment_dir, 'samples_testing', 'B2A')
+save_dir = py.join(args.experiment_dir, args.method,
+                   'samples_testing', 'B2A')
 py.mkdir(save_dir)
 i = 0
 for A, B in zip(A_dataset_test, B_dataset_test):

@@ -68,10 +68,16 @@ cycle_loss_dir = py.join('output', args.dataset, args.method,
                          'plot_figure', 'training', 'cycle_loss')
 id_loss_dir = py.join('output', args.dataset, args.method,
                       'plot_figure', 'training', 'id_loss')
+ssim_dir = py.join('output', args.dataset, args.method,
+                   'plot_figure', 'training', 'ssim')
+psnr_dir = py.join('output', args.dataset, args.method,
+                   'plot_figure', 'training', 'psnr')
 py.mkdir(g_loss_dir)
 py.mkdir(d_loss_dir)
 py.mkdir(cycle_loss_dir)
 py.mkdir(id_loss_dir)
+py.mkdir(ssim_dir)
+py.mkdir(psnr_dir)
 g_loss_validation_dir = py.join(
     'output', args.dataset, args.method, 'plot_figure', 'validation', 'g_loss')
 d_loss_validation_dir = py.join(
@@ -80,10 +86,16 @@ cycle_loss_validation_dir = py.join(
     'output', args.dataset, args.method, 'plot_figure', 'validation', 'cycle_loss')
 id_loss_validation_dir = py.join(
     'output', args.dataset, args.method, 'plot_figure', 'validation', 'id_loss')
+ssim_dir_valid = py.join('output', args.dataset, args.method,
+                         'plot_figure', 'validation', 'ssim')
+psnr_dir_valid = py.join('output', args.dataset, args.method,
+                         'plot_figure', 'validation', 'psnr')
 py.mkdir(g_loss_validation_dir)
 py.mkdir(d_loss_validation_dir)
 py.mkdir(cycle_loss_validation_dir)
 py.mkdir(id_loss_validation_dir)
+py.mkdir(g_loss_validation_dir)
+py.mkdir(d_loss_validation_dir)
 # save settings
 py.args_to_yaml(py.join(output_dir, args.method, 'settings.yml'), args)
 
@@ -201,7 +213,7 @@ with train_summary_writer.as_default():
 
         # train for an epoch
         for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
-        # for A, B in tqdm.tqdm(A_B_dataset.take(10), desc='Inner Epoch Loop', total=len_dataset):
+            # for A, B in tqdm.tqdm(A_B_dataset.take(10), desc='Inner Epoch Loop', total=len_dataset):
 
             G_loss_dict, D_loss_dict = train_step(A, B)
 
@@ -242,22 +254,26 @@ with train_summary_writer.as_default():
 
         i = 0
         for A, B in tqdm.tqdm(A_B_dataset_valid, desc='Valid Epoch Loop', total=valid_len_dataset):
-        # for A, B in tqdm.tqdm(A_B_dataset_valid.take(15), desc='Valid Epoch Loop', total=valid_len_dataset):
+            # for A, B in tqdm.tqdm(A_B_dataset_valid.take(15), desc='Valid Epoch Loop', total=valid_len_dataset):
             A2B, B2A, valid_G_results = model.valid_G(A, B)
             valid_D_results = model.valid_D(A, B, A2B, B2A)
             A2B_g_loss_valid.append(valid_G_results['A2B_g_loss_valid'])
             B2A_g_loss_valid.append(valid_G_results['B2A_g_loss_valid'])
-            A2B2A_cycle_loss_valid.append(valid_G_results['A2B2A_cycle_loss_valid'])
-            B2A2B_cycle_loss_valid.append(valid_G_results['B2A2B_cycle_loss_valid'])
+            A2B2A_cycle_loss_valid.append(
+                valid_G_results['A2B2A_cycle_loss_valid'])
+            B2A2B_cycle_loss_valid.append(
+                valid_G_results['B2A2B_cycle_loss_valid'])
             A2A_id_loss_valid.append(valid_G_results['A2A_id_loss_valid'])
             B2B_id_loss_valid.append(valid_G_results['B2B_id_loss_valid'])
             A_d_loss_valid.append(valid_D_results['A_d_loss_valid'])
             B_d_loss_valid.append(valid_D_results['B_d_loss_valid'])
             iterations_valid.append(i)
-            
+
             # Summary
-            tl.summary(valid_G_results, step=model.G_optimizer.iterations, name='G_losses_valid')
-            tl.summary(valid_D_results, step=model.G_optimizer.iterations, name='D_losses_valid')
+            tl.summary(valid_G_results,
+                       step=model.G_optimizer.iterations, name='G_losses_valid')
+            tl.summary(valid_D_results,
+                       step=model.G_optimizer.iterations, name='D_losses_valid')
 
             i += 1
 
