@@ -392,77 +392,18 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
             h = keras.layers.Conv2D(
                 filter_size, 7, padding='valid', use_bias=False)(h)
             h = Norm()(h)
-            h = tf.nn.relu(h)
+            h = tf.nn.tanh(h)
             h = tf.keras.layers.Dropout(dropout_rate)(h)
-        elif filter_size == 256:
-            h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
-            h = Norm()(h)
-            h = tf.nn.relu(h)
-            h = tf.keras.layers.Dropout(dropout_rate)(h)
-            h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
-            h = Norm()(h)
-            h = tf.nn.relu(h)
-            h = tf.keras.layers.Dropout(dropout_rate)(h)
-
-            x = h
-            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-            x = keras.layers.Conv2D(
-                filter_size, 3, padding='valid', use_bias=False)(x)
-            x = Norm()(x)
-            x = tf.nn.relu(x)
-            x = tf.keras.layers.Dropout(dropout_rate)(x)
-
-            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-            x = keras.layers.Conv2D(
-                filter_size, 3, padding='valid', use_bias=False)(x)
-            x = Norm()(x)
-            x = tf.nn.relu(x)
-            x = tf.keras.layers.Dropout(dropout_rate)(x)
-            h = keras.layers.add([h, x])
-
-            x = h
-            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-            x = keras.layers.Conv2D(
-                filter_size, 3, padding='valid', use_bias=False)(x)
-            x = Norm()(x)
-            x = tf.nn.relu(x)
-            x = tf.keras.layers.Dropout(dropout_rate)(x)
-
-            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-            x = keras.layers.Conv2D(
-                filter_size, 3, padding='valid', use_bias=False)(x)
-            x = Norm()(x)
-            x = tf.nn.relu(x)
-            x = tf.keras.layers.Dropout(dropout_rate)(x)
-            h = keras.layers.add([h, x])
-
-            x = h
-            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-            x = keras.layers.Conv2D(
-                filter_size, 3, padding='valid', use_bias=False)(x)
-            x = Norm()(x)
-            x = tf.nn.relu(x)
-            x = tf.keras.layers.Dropout(dropout_rate)(x)
-
-            x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-            x = keras.layers.Conv2D(
-                filter_size, 3, padding='valid', use_bias=False)(x)
-            x = Norm()(x)
-            x = tf.nn.relu(x)
-            x = tf.keras.layers.Dropout(dropout_rate)(x)
-            h = keras.layers.add([h, x])
 
         else:
             h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
             h = Norm()(h)
-            h = tf.nn.relu(h)
+            h = tf.nn.tanh(h)
             h = tf.keras.layers.Dropout(dropout_rate)(h)
-            h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
-            h = Norm()(h)
-            h = tf.nn.relu(h)
-            h = tf.keras.layers.Dropout(dropout_rate)(h)
+
         conv_blocks.append(h)
         pool = tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2))(h)
+
         pool_layers.append(pool)
         h = pool
 
@@ -470,12 +411,7 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
     h = keras.layers.Conv2D(filters[-1], (3, 3),
                             padding=padding)(h)
     h = Norm()(h)
-    h = tf.nn.relu(h)
-    h = tf.keras.layers.Dropout(dropout_rate)(h)
-    h = keras.layers.Conv2D(filters[-1], (3, 3),
-                            padding=padding)(h)
-    h = Norm()(h)
-    h = tf.nn.relu(h)
+    h = tf.nn.tanh(h)
     h = tf.keras.layers.Dropout(dropout_rate)(h)
 
     # Upward path
@@ -483,16 +419,8 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
         h = keras.layers.Conv2DTranspose(filter_size, (2, 2),
                                          strides=(2, 2), padding=padding)(h)
         h = Norm()(h)
-        h = tf.nn.relu(h)
+        h = tf.nn.tanh(h)
         h = keras.layers.Concatenate(axis=3)([h, conv_blocks[-(i+1)]])
-        h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
-        h = Norm()(h)
-        h = tf.nn.relu(h)
-        h = tf.keras.layers.Dropout(dropout_rate)(h)
-        h = keras.layers.Conv2D(filter_size, (3, 3), padding=padding)(h)
-        h = Norm()(h)
-        h = tf.nn.relu(h)
-        h = tf.keras.layers.Dropout(dropout_rate)(h)
 
     # Output layer
     # outputs = keras.layers.Conv2D(num_classes, (1, 1), activation='sigmoid',
@@ -500,9 +428,8 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3),
     h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
     h = keras.layers.Conv2D(num_classes, 7, padding='valid')(h)
     h = tf.tanh(h)
-    model = tf.keras.Model(inputs=inputs, outputs=h)
 
-    return model
+    return tf.keras.Model(inputs=inputs, outputs=h)
 
 
 def AnotherUnetDiscriminator(input_shape=(256, 256, 3),
