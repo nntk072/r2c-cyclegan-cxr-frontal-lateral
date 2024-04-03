@@ -493,7 +493,8 @@ def OpUNetGenerator(input_shape=(256, 256, 3),
     last = Oper2DTranspose(
         output_channels, 4, strides=2,
         padding='same', q=q,
-        activation='tanh')  # (bs, 256, 256, 3)
+        activation='tanh',
+        apply_initializer=True)  # (bs, 256, 256, 3)
 
     concat = tf.keras.layers.Concatenate()
 
@@ -550,7 +551,7 @@ def OpUNetDiscriminator(input_shape=(256, 256, 3),
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
     conv = Oper2D(
-        512, 4, strides=1, padding='valid', q=q)(zero_pad1)  # (bs, 31, 31, 512)
+        512, 4, strides=1, padding='valid', q=q, apply_initializer=True)(zero_pad1)  # (bs, 31, 31, 512)
 
     norm1 = Norm()(conv)
     leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
@@ -558,7 +559,7 @@ def OpUNetDiscriminator(input_shape=(256, 256, 3),
     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
 
     last = Oper2D(
-        1, 4, strides=1, padding='valid', q=q)(zero_pad2)  # (bs, 30, 30, 1)
+        1, 4, strides=1, padding='valid', q=q, apply_initializer=True)(zero_pad2)  # (bs, 30, 30, 1)
 
     if target:
         return tf.keras.Model(inputs=[inp, tar], outputs=last)

@@ -7,21 +7,31 @@ import numpy as np
 
 
 class Oper2D(tf.keras.Model):
-    def __init__(self, filters, kernel_size, activation=None, q=1, padding='valid', use_bias=True, strides=1):
+    def __init__(self, filters, kernel_size, activation=None, q=1, padding='valid', use_bias=True, strides=1, apply_initializer=False):
         super(Oper2D, self).__init__(name='')
 
         self.activation = activation
         self.q = q
         self.all_layers = []
-
+        initializer = tf.random_normal_initializer(0., 0.02)
         for i in range(0, q):  # q convolutional layers.
-            self.all_layers.append(tf.keras.layers.Conv2D(filters,
-                                                          (kernel_size,
-                                                           kernel_size),
-                                                          padding=padding,
-                                                          use_bias=use_bias,
-                                                          strides=strides,
-                                                          activation=None))
+            if not apply_initializer:
+                self.all_layers.append(tf.keras.layers.Conv2D(filters,
+                                                              (kernel_size,
+                                                               kernel_size),
+                                                              padding=padding,
+                                                              use_bias=use_bias,
+                                                              strides=strides,
+                                                              activation=activation))
+            else:
+                self.all_layers.append(tf.keras.layers.Conv2D(filters,
+                                                              (kernel_size,
+                                                               kernel_size),
+                                                              padding=padding,
+                                                              use_bias=use_bias,
+                                                              strides=strides,
+                                                              activation=activation,
+                                                              kernel_initializer=initializer))
 
     @tf.function
     def call(self, input_tensor, training=False):
@@ -42,20 +52,29 @@ class Oper2D(tf.keras.Model):
 
 
 class Oper2DTranspose(tf.keras.Model):
-    def __init__(self, filters, kernel_size, activation=None, q=1, padding='valid', use_bias=True, strides=1):
+    def __init__(self, filters, kernel_size, activation=None, q=1, padding='valid', use_bias=True, strides=1, apply_initializer=False):
         super(Oper2DTranspose, self).__init__(name='')
 
         self.activation = activation
         self.q = q
         self.all_layers = []
-
+        initializer = tf.random_normal_initializer(0., 0.02)
         for i in range(0, q):  # q convolutional layers.
-            self.all_layers.append(tf.keras.layers.Conv2DTranspose(filters,
-                                                                   kernel_size,
-                                                                   padding=padding,
-                                                                   use_bias=use_bias,
-                                                                   strides=strides,
-                                                                   activation=None))
+            if not apply_initializer:
+                self.all_layers.append(tf.keras.layers.Conv2DTranspose(filters,
+                                                                       kernel_size,
+                                                                       padding=padding,
+                                                                       use_bias=use_bias,
+                                                                       strides=strides,
+                                                                       activation=activation))
+            else:
+                self.all_layers.append(tf.keras.layers.Conv2DTranspose(filters,
+                                                                       kernel_size,
+                                                                       padding=padding,
+                                                                       use_bias=use_bias,
+                                                                       strides=strides,
+                                                                       activation=activation,
+                                                                       kernel_initializer=initializer))
 
     @tf.function
     def call(self, input_tensor, training=False):
@@ -141,6 +160,8 @@ def upsample(filters, size, norm_type='instance_norm', apply_dropout=False):
     return result
 
 # Integrate Oper2D and upsample/downsample layers, change the last result to a tanh activation function.
+
+
 def integrate_oper_upsample(filters, size, norm_type='instance_norm', apply_dropout=False, q=1):
     """Upsamples an input.
 
@@ -160,7 +181,7 @@ def integrate_oper_upsample(filters, size, norm_type='instance_norm', apply_drop
 
     result = tf.keras.Sequential()
     result.add(
-        Oper2DTranspose(filters, size, strides=2, q=q, padding='same', use_bias=False))
+        Oper2DTranspose(filters, size, strides=2, q=q, padding='same', use_bias=False, apply_initializer=True))
 
     if norm_type.lower() == 'batch_norm':
         result.add(tf.keras.layers.batch_normalization())
@@ -195,7 +216,7 @@ def integrate_oper_downsample(filters, size, norm_type='batch_norm', apply_norm=
 
     result = tf.keras.Sequential()
     result.add(
-        Oper2D(filters, size, strides=2, q=q, padding='same', use_bias=False))
+        Oper2D(filters, size, strides=2, q=q, padding='same', use_bias=False, apply_initializer=True))
 
     if apply_norm:
         if norm_type.lower() == 'batch_norm':
