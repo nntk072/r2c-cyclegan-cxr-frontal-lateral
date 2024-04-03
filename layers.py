@@ -75,7 +75,7 @@ class Oper2DTranspose(tf.keras.Model):
 def downsample(filters, size, norm_type='batch_norm', apply_norm=True):
     """Downsamples an input.
 
-    Conv2D => batch_norm => LeakyRelu
+    Conv2D => instance_norm => LeakyRelu
 
     Args:
       filters: number of filters
@@ -137,5 +137,74 @@ def upsample(filters, size, norm_type='instance_norm', apply_dropout=False):
         result.add(tf.keras.layers.Dropout(0.5))
 
     result.add(tf.keras.layers.ReLU())
+
+    return result
+
+# Integrate Oper2D and upsample/downsample layers, change the last result to a tanh activation function.
+def integrate_oper_upsample(filters, size, norm_type='instance_norm', apply_dropout=False, q=1):
+    """Upsamples an input.
+
+    Oper2DTranspose => instance_norm => Dropout => Relu
+
+    Args:
+      filters: number of filters
+      size: filter size
+      norm_type: Normalization type; either 'batch_norm' or 'instance_norm'.
+      apply_dropout: If True, adds the dropout layer
+
+    Returns:
+      Upsample Sequential Model
+    """
+
+    initializer = tf.random_normal_initializer(0., 0.02)
+
+    result = tf.keras.Sequential()
+    result.add(
+        Oper2DTranspose(filters, size, strides=2, q=q, padding='same', use_bias=False))
+
+    if norm_type.lower() == 'batch_norm':
+        result.add(tf.keras.layers.batch_normalization())
+    elif norm_type.lower() == 'instance_norm':
+        result.add(tfa.layers.InstanceNormalization())
+
+    if apply_dropout:
+        result.add(tf.keras.layers.Dropout(0.5))
+
+    # result.add(tf.keras.layers.ReLU())
+    # Using tanh instead
+    result.add(tf.keras.layers.Activation('tanh'))
+
+    return result
+
+
+def integrate_oper_downsample(filters, size, norm_type='batch_norm', apply_norm=True, q=1):
+    """Downsamples an input.
+
+    Oper2D => instance_norm => LeakyRelu
+
+    Args:
+      filters: number of filters
+      size: filter size
+      norm_type: Normalization type; either 'batch_norm' or 'instance_norm'.
+      apply_norm: If True, adds the batch_norm layer
+
+    Returns:
+      Downsample Sequential Model
+    """
+    initializer = tf.random_normal_initializer(0., 0.02)
+
+    result = tf.keras.Sequential()
+    result.add(
+        Oper2D(filters, size, strides=2, q=q, padding='same', use_bias=False))
+
+    if apply_norm:
+        if norm_type.lower() == 'batch_norm':
+            result.add(tf.keras.layers.batch_normalization())
+        elif norm_type.lower() == 'instance_norm':
+            result.add(tfa.layers.InstanceNormalization())
+
+    # result.add(tf.keras.layers.LeakyReLU())
+    # Using tanh instead
+    result.add(tf.keras.layers.Activation('tanh'))
 
     return result

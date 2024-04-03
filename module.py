@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 import tensorflow.keras as keras
 from layers import Oper2D, Oper2DTranspose
-from layers import downsample, upsample
+from layers import downsample, upsample, integrate_oper_upsample, integrate_oper_downsample
 
 # ==============================================================================
 # =                                  networks                                  =
@@ -524,9 +524,123 @@ def AnotherUnetDiscriminator(input_shape=(256, 256, 3),
     return model
 
 
+def OpUNetGenerator(input_shape=(256, 256, 3),
+                    output_channels=3,
+                    norm='instance_norm',
+                    q=1):
+    """Modified u-net generator model (https://arxiv.org/abs/1611.07004).
+
+    Args:
+      output_channels: Output channels
+      norm: Type of normalization. Either 'batch_norm' or 'instance_norm'.
+      q: number of convolutional layers in Oper2D and Oper2DTranspose
+
+    Returns:
+      Generator model
+    """
+    down_stack = [
+        integrate_oper_downsample(
+            64, 4, norm, apply_norm=False, q=q),  # (bs, 128, 128, 64)
+        integrate_oper_downsample(128, 4, norm, q=q),  # (bs, 64, 64, 128)
+        integrate_oper_downsample(256, 4, norm, q=q),  # (bs, 32, 32, 256)
+        integrate_oper_downsample(512, 4, norm, q=q),  # (bs, 16, 16, 512)
+        integrate_oper_downsample(512, 4, norm, q=q),  # (bs, 8, 8, 512)
+        integrate_oper_downsample(512, 4, norm, q=q),  # (bs, 4, 4, 512)
+        integrate_oper_downsample(512, 4, norm, q=q),  # (bs, 2, 2, 512)
+        integrate_oper_downsample(512, 4, norm, q=q),  # (bs, 1, 1, 512)
+    ]
+
+    up_stack = [
+        integrate_oper_upsample(
+            512, 4, norm, apply_dropout=True, q=q),  # (bs, 2, 2, 1024)
+        integrate_oper_upsample(
+            512, 4, norm, apply_dropout=True, q=q),  # (bs, 4, 4, 1024)
+        integrate_oper_upsample(
+            512, 4, norm, apply_dropout=True, q=q),  # (bs, 8, 8, 1024)
+        integrate_oper_upsample(512, 4, norm, q=q),  # (bs, 16, 16, 1024)
+        integrate_oper_upsample(256, 4, norm, q=q),  # (bs, 32, 32, 512)
+        integrate_oper_upsample(128, 4, norm, q=q),  # (bs, 64, 64, 256)
+        integrate_oper_upsample(64, 4, norm, q=q),  # (bs, 128, 128, 128)
+    ]
+
+    last = Oper2DTranspose(
+        output_channels, 4, strides=2,
+        padding='same', q=q,
+        activation='tanh')  # (bs, 256, 256, 3)
+
+    concat = tf.keras.layers.Concatenate()
+
+    inputs = tf.keras.layers.Input(shape=[None, None, 3])
+    x = inputs
+
+    # Downsampling through the model
+    skips = []
+    for down in down_stack:
+        x = down(x)
+        skips.append(x)
+
+    skips = reversed(skips[:-1])
+
+    # Upsampling and establishing the skip connections
+    for up, skip in zip(up_stack, skips):
+        x = up(x)
+        x = concat([x, skip])
+
+    x = last(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=x)
+
+
+def OpUNetDiscriminator(input_shape=(256, 256, 3),
+                        norm='instance_norm',
+                        target=False,
+                        q=1):
+    """PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
+
+    Args:
+      norm: Type of normalization. Either 'batch_norm' or 'instance_norm'.
+      target: Bool, indicating whether target image is an input or not.
+      q: number of convolutional layers in Oper2D
+
+    Returns:
+      Discriminator model
+    """
+    Norm = _get_norm_layer(norm)
+    inp = tf.keras.layers.Input(shape=[None, None, 3], name='input_image')
+    x = inp
+
+    if target:
+        tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
+        x = tf.keras.layers.concatenate(
+            [inp, tar])  # (bs, 256, 256, channels*2)
+
+    down1 = integrate_oper_downsample(
+        64, 4, norm, False, q=q)(x)  # (bs, 128, 128, 64)
+    down2 = integrate_oper_downsample(
+        128, 4, norm, q=q)(down1)  # (bs, 64, 64, 128)
+    down3 = integrate_oper_downsample(
+        256, 4, norm, q=q)(down2)  # (bs, 32, 32, 256)
+
+    zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
+    conv = Oper2D(
+        512, 4, strides=1, padding='valid', q=q)(zero_pad1)  # (bs, 31, 31, 512)
+
+    norm1 = Norm()(conv)
+    leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
+
+    zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
+
+    last = Oper2D(
+        1, 4, strides=1, padding='valid', q=q)(zero_pad2)  # (bs, 30, 30, 1)
+
+    if target:
+        return tf.keras.Model(inputs=[inp, tar], outputs=last)
+    else:
+        return tf.keras.Model(inputs=inp, outputs=last)
 # ==============================================================================
 # =                          learning rate scheduler                           =
 # ==============================================================================
+
 
 class LinearDecay(keras.optimizers.schedules.LearningRateSchedule):
     # if `step` < `step_decay`: use fixed learning rate
