@@ -16,6 +16,7 @@ import pylib as py
 
 
 def main():
+    method = "convolutional"
     A2B_g_loss_list = np.array([])
     B2A_g_loss_list = np.array([])
     A2B2A_cycle_loss_list = np.array([])
@@ -24,23 +25,27 @@ def main():
     B2B_id_loss_list = np.array([])
     A_d_loss_list = np.array([])
     B_d_loss_list = np.array([])
+    ssim_list = np.array([])
+    psnr_list = np.array([])
     ep_list = np.array([])
     for ep in range(0, 1000):
         A2B_g_loss = np.load(
-            f'output/plot_data/training/loss_A2B_g_loss_{ep}.npy')
+            f'output/{method}/plot_data/training/loss_A2B_g_loss_{ep}.npy')
         B2A_g_loss = np.load(
-            f'output/plot_data/training/loss_B2A_g_loss_{ep}.npy')
+            f'output/{method}/plot_data/training/loss_B2A_g_loss_{ep}.npy')
         A2B2A_cycle_loss = np.load(
-            f'output/plot_data/training/loss_A2B2A_cycle_loss_{ep}.npy')
+            f'output/{method}/plot_data/training/loss_A2B2A_cycle_loss_{ep}.npy')
         B2A2B_cycle_loss = np.load(
-            f'output/plot_data/training/loss_B2A2B_cycle_loss_{ep}.npy')
+            f'output/{method}/plot_data/training/loss_B2A2B_cycle_loss_{ep}.npy')
         A2A_id_loss = np.load(
-            f'output/plot_data/training/loss_A2A_id_loss_{ep}.npy')
+            f'output/{method}/plot_data/training/loss_A2A_id_loss_{ep}.npy')
         B2B_id_loss = np.load(
-            f'output/plot_data/training/loss_B2B_id_loss_{ep}.npy')
-        A_d_loss = np.load(f'output/plot_data/training/loss_A_d_loss_{ep}.npy')
-        B_d_loss = np.load(f'output/plot_data/training/loss_B_d_loss_{ep}.npy')
-        iterations = np.load(f'output/plot_data/training/iterations_{ep}.npy')
+            f'output/{method}/plot_data/training/loss_B2B_id_loss_{ep}.npy')
+        A_d_loss = np.load(f'output/{method}/plot_data/training/loss_A_d_loss_{ep}.npy')
+        B_d_loss = np.load(f'output/{method}/plot_data/training/loss_B_d_loss_{ep}.npy')
+        ssim = np.load(f'output/{method}/plot_data/training/ssim_value_list_{ep}.npy')
+        psnr = np.load(f'output/{method}/plot_data/training/psnr_value_list_{ep}.npy')
+        iterations = np.load(f'output/{method}/plot_data/training/iterations_{ep}.npy')
 
         # Calculate the mean of the loss data for each iteration and save into the list
         A2B_g_loss_list = np.append(A2B_g_loss_list, np.mean(A2B_g_loss))
@@ -53,6 +58,8 @@ def main():
         B2B_id_loss_list = np.append(B2B_id_loss_list, np.mean(B2B_id_loss))
         A_d_loss_list = np.append(A_d_loss_list, np.mean(A_d_loss))
         B_d_loss_list = np.append(B_d_loss_list, np.mean(B_d_loss))
+        ssim_list = np.append(ssim_list, np.mean(ssim))
+        psnr_list = np.append(psnr_list, np.mean(psnr))
         ep_list = np.append(ep_list, ep)
 
     # Do the same with the valid
@@ -64,26 +71,31 @@ def main():
     B2B_id_loss_list_valid = np.array([])
     A_d_loss_list_valid = np.array([])
     B_d_loss_list_valid = np.array([])
+    ssim_list_valid = np.array([])
+    psnr_list_valid = np.array([])
     ep_list_valid = np.array([])
     for ep in range(0, 1000):  # the name of the folder is validation
         A2B_g_loss = np.load(
-            f'output/plot_data/validation/loss_A2B_g_loss_{ep}.npy')
+            f'output/{method}/plot_data/validation/loss_A2B_g_loss_{ep}.npy')
         B2A_g_loss = np.load(
-            f'output/plot_data/validation/loss_B2A_g_loss_{ep}.npy')
+            f'output/{method}/plot_data/validation/loss_B2A_g_loss_{ep}.npy')
         A2B2A_cycle_loss = np.load(
-            f'output/plot_data/validation/loss_A2B2A_cycle_loss_{ep}.npy')
+            f'output/{method}/plot_data/validation/loss_A2B2A_cycle_loss_{ep}.npy')
         B2A2B_cycle_loss = np.load(
-            f'output/plot_data/validation/loss_B2A2B_cycle_loss_{ep}.npy')
+            f'output/{method}/plot_data/validation/loss_B2A2B_cycle_loss_{ep}.npy')
         A2A_id_loss = np.load(
-            f'output/plot_data/validation/loss_A2A_id_loss_{ep}.npy')
+            f'output/{method}/plot_data/validation/loss_A2A_id_loss_{ep}.npy')
         B2B_id_loss = np.load(
-            f'output/plot_data/validation/loss_B2B_id_loss_{ep}.npy')
+            f'output/{method}/plot_data/validation/loss_B2B_id_loss_{ep}.npy')
         A_d_loss = np.load(
-            f'output/plot_data/validation/loss_A_d_loss_{ep}.npy')
+            f'output/{method}/plot_data/validation/loss_A_d_loss_{ep}.npy')
         B_d_loss = np.load(
-            f'output/plot_data/validation/loss_B_d_loss_{ep}.npy')
+            f'output/{method}/plot_data/validation/loss_B_d_loss_{ep}.npy')
+        ssim = np.load(f'output/{method}/plot_data/validation/ssim_value_list_{ep}.npy')
         iterations = np.load(
-            f'output/plot_data/validation/iterations_{ep}.npy')
+            f'output/{method}/plot_data/validation/iterations_{ep}.npy')
+        psnr = np.load(f'output/{method}/plot_data/validation/psnr_value_list_{ep}.npy')
+
 
         # Calculate the mean of the loss data for each iteration and save into the list
         A2B_g_loss_list_valid = np.append(
@@ -100,6 +112,8 @@ def main():
             B2B_id_loss_list_valid, np.mean(B2B_id_loss))
         A_d_loss_list_valid = np.append(A_d_loss_list_valid, np.mean(A_d_loss))
         B_d_loss_list_valid = np.append(B_d_loss_list_valid, np.mean(B_d_loss))
+        ssim_list_valid = np.append(ssim_list_valid, np.mean(ssim))
+        psnr_list_valid = np.append(psnr_list_valid, np.mean(psnr))
         ep_list_valid = np.append(ep_list_valid, ep)
 
     # Plot into 4 figures, g_loss, cycle_loss, id_loss, d_loss
@@ -138,7 +152,7 @@ def main():
     plt.title('Identity Losses')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.savefig('output/identity_losses.png')
+    plt.savefig(f'output/{method}/identity_losses.png')
     plt.close()
 
     plt.figure()
@@ -150,9 +164,29 @@ def main():
     plt.title('Discriminator Losses')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.savefig('output/discriminator_losses.png')
+    plt.savefig(f'output/{method}/discriminator_losses.png')
     plt.close()
 
+    # Plot the SSIM and PSNR data
+    plt.figure()
+    plt.plot(ep_list, ssim_list, label='ssim')
+    plt.plot(ep_list_valid, ssim_list_valid, label='ssim_valid')
+    plt.legend()
+    plt.title('SSIM')
+    plt.xlabel('Epochs')
+    plt.ylabel('SSIM')
+    plt.savefig(f'output/{method}/ssim.png')
+    plt.close()
+    
+    plt.figure()
+    plt.plot(ep_list, psnr_list, label='psnr')
+    plt.plot(ep_list_valid, psnr_list_valid, label='psnr_valid')
+    plt.legend()
+    plt.title('PSNR')
+    plt.xlabel('Epochs')
+    plt.ylabel('PSNR')
+    plt.savefig(f'output/{method}/psnr.png')
+    plt.close()
     # # Asking for the starting and ending epoch and concatenating the data for the plot
     # # Start epoch
     # start_epoch = int(input('Enter the starting epoch: '))
