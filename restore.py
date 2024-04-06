@@ -196,13 +196,26 @@ valid_iter = iter(A_B_dataset_valid)
 valid_dir = py.join(output_dir, args.method, 'samples_valid')
 py.mkdir(valid_dir)
 
-
+# Recognize the value to start the restoration by reading through the folder output/method/plot_data/training/ssim_value_list_number.npy, where the number is the epoch number and the start
+# value is the last epoch number
+start = 0 # start epoch number
+for i in range(0, 1000):
+    try:
+        ssim_value_list = np.load(
+            py.join(plot_dir, 'training', 'ssim_value_list_' + str(i) + '.npy'))
+        start = i
+    except:
+        break
+    
 # Restore the checkpoint from 1 to the last epoch, save the validation plot data
 checkDir = checkpoint.directory
-i_train = 0
-i_valid = 0
+# i_train = 0
+# i_valid = 0
+i_train = start*len_dataset
+i_valid = start*valid_len_dataset
 ep_step = 1000
-for ep in range(0, ep_step + 1):
+# for ep in range(0, ep_step + 1):
+for ep in range(start, ep_step):
     # Load model
     # try:
     ep_cnt_recover = tf.Variable(
