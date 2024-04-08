@@ -43,13 +43,20 @@ def main():
             f'output/{method}/plot_data/training/loss_A2A_id_loss_{ep}.npy')
         B2B_id_loss = np.load(
             f'output/{method}/plot_data/training/loss_B2B_id_loss_{ep}.npy')
-        A_d_loss = np.load(f'output/{method}/plot_data/training/loss_A_d_loss_{ep}.npy')
-        B_d_loss = np.load(f'output/{method}/plot_data/training/loss_B_d_loss_{ep}.npy')
-        ssim_A2B = np.load(f'output/{method}/plot_data/training/ssim_A2B_value_list_{ep}.npy')
-        psnr_A2B = np.load(f'output/{method}/plot_data/training/psnr_A2B_value_list_{ep}.npy')
-        ssim_B2A = np.load(f'output/{method}/plot_data/training/ssim_B2A_value_list_{ep}.npy')
-        psnr_B2A = np.load(f'output/{method}/plot_data/training/psnr_B2A_value_list_{ep}.npy')
-        iterations = np.load(f'output/{method}/plot_data/training/iterations_{ep}.npy')
+        A_d_loss = np.load(
+            f'output/{method}/plot_data/training/loss_A_d_loss_{ep}.npy')
+        B_d_loss = np.load(
+            f'output/{method}/plot_data/training/loss_B_d_loss_{ep}.npy')
+        ssim_A2B = np.load(
+            f'output/{method}/plot_data/training/ssim_A2B_value_list_{ep}.npy')
+        psnr_A2B = np.load(
+            f'output/{method}/plot_data/training/psnr_A2B_value_list_{ep}.npy')
+        ssim_B2A = np.load(
+            f'output/{method}/plot_data/training/ssim_B2A_value_list_{ep}.npy')
+        psnr_B2A = np.load(
+            f'output/{method}/plot_data/training/psnr_B2A_value_list_{ep}.npy')
+        iterations = np.load(
+            f'output/{method}/plot_data/training/iterations_{ep}.npy')
 
         # Calculate the mean of the loss data for each iteration and save into the list
         A2B_g_loss_list = np.append(A2B_g_loss_list, np.mean(A2B_g_loss))
@@ -82,7 +89,7 @@ def main():
     psnr_A2B_list_valid = np.array([])
     psnr_B2A_list_valid = np.array([])
     ep_list_valid = np.array([])
-    for ep in range(0, 100):  # the name of the folder is validation
+    for ep in range(0, 1000):  # the name of the folder is validation
         A2B_g_loss = np.load(
             f'output/{method}/plot_data/validation/loss_A2B_g_loss_{ep}.npy')
         B2A_g_loss = np.load(
@@ -99,13 +106,16 @@ def main():
             f'output/{method}/plot_data/validation/loss_A_d_loss_{ep}.npy')
         B_d_loss = np.load(
             f'output/{method}/plot_data/validation/loss_B_d_loss_{ep}.npy')
-        ssim_A2B = np.load(f'output/{method}/plot_data/validation/ssim_A2B_value_list_{ep}.npy')
-        psnr_A2B = np.load(f'output/{method}/plot_data/validation/psnr_A2B_value_list_{ep}.npy')
-        ssim_B2A = np.load(f'output/{method}/plot_data/validation/ssim_B2A_value_list_{ep}.npy')
-        psnr_B2A = np.load(f'output/{method}/plot_data/validation/psnr_B2A_value_list_{ep}.npy')
+        ssim_A2B = np.load(
+            f'output/{method}/plot_data/validation/ssim_A2B_value_list_{ep}.npy')
+        psnr_A2B = np.load(
+            f'output/{method}/plot_data/validation/psnr_A2B_value_list_{ep}.npy')
+        ssim_B2A = np.load(
+            f'output/{method}/plot_data/validation/ssim_B2A_value_list_{ep}.npy')
+        psnr_B2A = np.load(
+            f'output/{method}/plot_data/validation/psnr_B2A_value_list_{ep}.npy')
         iterations = np.load(
             f'output/{method}/plot_data/validation/iterations_{ep}.npy')
-
 
         # Calculate the mean of the loss data for each iteration and save into the list
         A2B_g_loss_list_valid = np.append(
@@ -129,82 +139,214 @@ def main():
         ep_list_valid = np.append(ep_list_valid, ep)
 
     # Plot into 4 figures, g_loss, cycle_loss, id_loss, d_loss
-    plt.figure()
-    plt.plot(ep_list, A2B_g_loss_list, label='A2B_g_loss')
-    plt.plot(ep_list, B2A_g_loss_list, label='B2A_g_loss')
-    plt.plot(ep_list_valid, A2B_g_loss_list_valid, label='A2B_g_loss_valid')
-    plt.plot(ep_list_valid, B2A_g_loss_list_valid, label='B2A_g_loss_valid')
-    plt.legend()
-    plt.title('Generator Losses')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.savefig(f'output/{method}/generator_losses.png')
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(ep_list, A2B_g_loss_list, label='A2B_g_loss', linewidth=1)
+    plt.plot(ep_list, B2A_g_loss_list, label='B2A_g_loss', linewidth=1)
+    plt.plot(ep_list_valid, A2B_g_loss_list_valid,
+             label='A2B_g_loss_valid', linewidth=1)
+    plt.plot(ep_list_valid, B2A_g_loss_list_valid,
+             label='B2A_g_loss_valid', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('Generator Losses', fontsize='x-large')
+    plt.xlabel('Epochs', fontsize='large')
+    plt.ylabel('Loss', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.minorticks_on()
+    plt.grid(which='minor', color='gray', linewidth=0.5)
+    plt.xlim(ep_list[0], ep_list[-1])
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
+    if max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) < 0.25:
+        plt.ylim(0, 0.25)
+        plt.yticks(np.arange(0, 0.25, 0.025))
+    elif max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) < 0.5:
+        plt.ylim(0, 0.5)
+        plt.yticks(np.arange(0, 0.5, 0.05))
+    elif max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) < 0.75:
+        plt.ylim(0, 0.75)
+        plt.yticks(np.arange(0, 0.75, 0.05))
+    elif max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) < 1:
+        plt.ylim(0, 1)
+        plt.yticks(np.arange(0, 1, 0.05))
+    else:
+        plt.ylim(0, max(max(A2B_g_loss_list), max(B2A_g_loss_list),
+                 max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)))
+        plt.yticks(np.arange(0, max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(
+            A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)), 0.05))
+    plt.savefig(f'output/{method}/generator_losses.png',
+                dpi=300)  # Save as high-res image
     plt.close()
 
-    plt.figure()
-    plt.plot(ep_list, A2B2A_cycle_loss_list, label='A2B2A_cycle_loss')
-    plt.plot(ep_list, B2A2B_cycle_loss_list, label='B2A2B_cycle_loss')
+    # Cycle Losses Plot
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(ep_list, A2B2A_cycle_loss_list,
+             label='A2B2A_cycle_loss', linewidth=1)
+    plt.plot(ep_list, B2A2B_cycle_loss_list,
+             label='B2A2B_cycle_loss', linewidth=1)
     plt.plot(ep_list_valid, A2B2A_cycle_loss_list_valid,
-             label='A2B2A_cycle_loss_valid')
+             label='A2B2A_cycle_loss_valid', linewidth=1)
     plt.plot(ep_list_valid, B2A2B_cycle_loss_list_valid,
-             label='B2A2B_cycle_loss_valid')
-    plt.legend()
-    plt.title('Cycle Losses')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.savefig(f'output/{method}/cycle_losses.png')
+             label='B2A2B_cycle_loss_valid', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('Cycle Losses', fontsize='x-large')
+    plt.xlabel('Epochs', fontsize='large')
+    plt.ylabel('Loss', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.minorticks_on()
+    plt.grid(which='minor', color='gray', linewidth=0.5)
+    plt.xlim(ep_list[0], ep_list[-1])
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
+    if max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) < 0.25:
+        plt.ylim(0, 0.25)
+        plt.yticks(np.arange(0, 0.25, 0.025))
+    elif max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) < 0.5:
+        plt.ylim(0, 0.5)
+        plt.yticks(np.arange(0, 0.5, 0.05))
+    elif max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) < 0.75:
+        plt.ylim(0, 0.75)
+        plt.yticks(np.arange(0, 0.75, 0.05))
+    elif max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) < 1:
+        plt.ylim(0, 1)
+        plt.yticks(np.arange(0, 1, 0.05))
+    else:
+        plt.ylim(0, max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(
+            A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)))
+        plt.yticks(np.arange(0, max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(
+            A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)), 0.05))
+    plt.savefig(f'output/{method}/cycle_losses.png',
+                dpi=300)  # Save as high-res image
     plt.close()
 
-    plt.figure()
-    plt.plot(ep_list, A2A_id_loss_list, label='A2A_id_loss')
-    plt.plot(ep_list, B2B_id_loss_list, label='B2B_id_loss')
-    plt.plot(ep_list_valid, A2A_id_loss_list_valid, label='A2A_id_loss_valid')
-    plt.plot(ep_list_valid, B2B_id_loss_list_valid, label='B2B_id_loss_valid')
-    plt.legend()
-    plt.title('Identity Losses')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.savefig(f'output/{method}/identity_losses.png')
+    # Identity Losses Plot
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(ep_list, A2A_id_loss_list, label='A2A_id_loss', linewidth=1)
+    plt.plot(ep_list, B2B_id_loss_list, label='B2B_id_loss', linewidth=1)
+    plt.plot(ep_list_valid, A2A_id_loss_list_valid,
+             label='A2A_id_loss_valid', linewidth=1)
+    plt.plot(ep_list_valid, B2B_id_loss_list_valid,
+             label='B2B_id_loss_valid', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('Identity Losses', fontsize='x-large')
+    plt.xlabel('Epochs', fontsize='large')
+    plt.ylabel('Loss', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.minorticks_on()
+    plt.grid(which='minor', color='gray', linewidth=0.5)
+    plt.xlim(ep_list[0], ep_list[-1])
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
+    if max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) < 0.25:
+        plt.ylim(0, 0.25)
+        plt.yticks(np.arange(0, 0.25, 0.025))
+    elif max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) < 0.5:
+        plt.ylim(0, 0.5)
+        plt.yticks(np.arange(0, 0.5, 0.05))
+    elif max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) < 0.75:
+        plt.ylim(0, 0.75)
+        plt.yticks(np.arange(0, 0.75, 0.05))
+    elif max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) < 1:
+        plt.ylim(0, 1)
+        plt.yticks(np.arange(0, 1, 0.05))
+    else:
+        plt.ylim(0, max(max(A2A_id_loss_list), max(B2B_id_loss_list),
+                 max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)))
+        plt.yticks(np.arange(0, max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(
+            A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)), 0.05))
+    plt.savefig(f'output/{method}/identity_losses.png',
+                dpi=300)  # Save as high-res image
     plt.close()
 
-    plt.figure()
-    plt.plot(ep_list, A_d_loss_list, label='A_d_loss')
-    plt.plot(ep_list, B_d_loss_list, label='B_d_loss')
-    plt.plot(ep_list_valid, A_d_loss_list_valid, label='A_d_loss_valid')
-    plt.plot(ep_list_valid, B_d_loss_list_valid, label='B_d_loss_valid')
-    plt.legend()
-    plt.title('Discriminator Losses')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.savefig(f'output/{method}/discriminator_losses.png')
+    # Discriminator Losses Plot
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(ep_list, A_d_loss_list, label='A_d_loss', linewidth=1)
+    plt.plot(ep_list, B_d_loss_list, label='B_d_loss', linewidth=1)
+    plt.plot(ep_list_valid, A_d_loss_list_valid,
+             label='A_d_loss_valid', linewidth=1)
+    plt.plot(ep_list_valid, B_d_loss_list_valid,
+             label='B_d_loss_valid', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('Discriminator Losses', fontsize='x-large')
+    plt.xlabel('Epochs', fontsize='large')
+    plt.ylabel('Loss', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.minorticks_on()
+    plt.grid(which='minor', color='gray', linewidth=0.5)
+    plt.xlim(ep_list[0], ep_list[-1])
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
+    if max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) < 0.25:
+        plt.ylim(0, 0.25)
+        plt.yticks(np.arange(0, 0.25, 0.025))
+    elif max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) < 0.5:
+        plt.ylim(0, 0.5)
+        plt.yticks(np.arange(0, 0.5, 0.05))
+    elif max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) < 0.75:
+        plt.ylim(0, 0.75)
+        plt.yticks(np.arange(0, 0.75, 0.05))
+    elif max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) < 1:
+        plt.ylim(0, 1)
+        plt.yticks(np.arange(0, 1, 0.05))
+    else:
+        plt.ylim(0, max(max(A_d_loss_list), max(B_d_loss_list),
+                 max(A_d_loss_list_valid), max(B_d_loss_list_valid)))
+        plt.yticks(np.arange(0, max(max(A_d_loss_list), max(B_d_loss_list), max(
+            A_d_loss_list_valid), max(B_d_loss_list_valid)), 0.05))
+    # Save as high-res image
+    plt.savefig(f'output/{method}/discriminator_losses.png', dpi=300)
     plt.close()
 
     # Plot the SSIM and PSNR data
-    plt.figure()
-
-    plt.plot(ep_list, ssim_A2B_list, label='ssim_A2B')
-    plt.plot(ep_list, ssim_B2A_list, label='ssim_B2A')
-    plt.plot(ep_list_valid, ssim_A2B_list_valid, label='ssim_A2B_valid')
-    plt.plot(ep_list_valid, ssim_B2A_list_valid, label='ssim_B2A_valid')
-    plt.legend()
-    plt.title('SSIM')
-    plt.xlabel('Epochs')
-    plt.ylabel('SSIM')
-    plt.savefig(f'output/{method}/ssim.png')
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(ep_list, psnr_A2B_list, label='psnr_A2B', linewidth=1)
+    plt.plot(ep_list, psnr_B2A_list, label='psnr_B2A',
+             linewidth=1)
+    plt.plot(ep_list_valid, psnr_A2B_list_valid,
+                label='psnr_A2B_valid', linewidth=1)
+    plt.plot(ep_list_valid, psnr_B2A_list_valid,
+                label='psnr_B2A_valid', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('PSNR', fontsize='x-large')
+    plt.xlabel('Epochs', fontsize='large')
+    plt.ylabel('PSNR', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.minorticks_on()
+    plt.grid(which='minor', color='gray', linewidth=0.5)
+    plt.xlim(ep_list[0], ep_list[-1])
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
+    if max(max(psnr_A2B_list), max(psnr_B2A_list), max(psnr_A2B_list_valid), max(psnr_B2A_list_valid)) < 15:
+        plt.ylim(0, 15)
+        plt.yticks(np.arange(0, 15, 1.5))
+    elif max(max(psnr_A2B_list), max(psnr_B2A_list), max(psnr_A2B_list_valid), max(psnr_B2A_list_valid)) < 20:
+        plt.ylim(0, 20)
+        plt.yticks(np.arange(0, 20, 2))
+    else:
+        plt.ylim(0, max(max(psnr_A2B_list), max(psnr_B2A_list), max(
+            psnr_A2B_list_valid), max(psnr_B2A_list_valid)))
+        plt.yticks(np.arange(0, max(max(psnr_A2B_list), max(psnr_B2A_list), max(
+            psnr_A2B_list_valid), max(psnr_B2A_list_valid)), 2.5))
+    plt.savefig(f'output/{method}/psnr.png',
+                dpi=300)  # Save as high-res image
     plt.close()
-    
-    plt.figure()
 
-    plt.plot(ep_list, psnr_A2B_list, label='psnr_A2B')
-    plt.plot(ep_list, psnr_B2A_list, label='psnr_B2A')
-    plt.plot(ep_list_valid, psnr_A2B_list_valid, label='psnr_A2B_valid')
-    plt.plot(ep_list_valid, psnr_B2A_list_valid, label='psnr_B2A_valid')
-    plt.legend()
-    plt.title('PSNR')
-    plt.xlabel('Epochs')
-    plt.ylabel('PSNR')
-    plt.savefig(f'output/{method}/psnr.png')
-    plt.close()
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(ep_list, ssim_A2B_list, label='ssim_A2B', linewidth=1)
+    plt.plot(ep_list, ssim_B2A_list, label='ssim_B2A',
+                linewidth=1)
+    plt.plot(ep_list_valid, ssim_A2B_list_valid,
+                label='ssim_A2B_valid', linewidth=1)
+    plt.plot(ep_list_valid, ssim_B2A_list_valid,
+                label='ssim_B2A_valid', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('SSIM', fontsize='x-large')
+    plt.xlabel('Epochs', fontsize='large')
+    plt.ylabel('SSIM', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.minorticks_on()
+    plt.grid(which='minor', color='gray', linewidth=0.5)
+    plt.xlim(ep_list[0], ep_list[-1])
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
+    # plt.ylim(-1, 1)
+    # plt.yticks(np.arange(-1, 1, 0.1))
+    plt.savefig(f'output/{method}/ssim.png',
+                dpi=300)  # Save as high-res image
+        
     # # Asking for the starting and ending epoch and concatenating the data for the plot
     # # Start epoch
     # start_epoch = int(input('Enter the starting epoch: '))
@@ -320,7 +462,7 @@ def save_psnr_and_ssim_data(iterations, ssim_A2B_value_list, psnr_A2B_value_list
         f'output/{method}/plot_data/{name}/ssim_B2A_value_list_{ep}.npy', ssim_B2A_value_list)
     np.save(
         f'output/{method}/plot_data/{name}/psnr_B2A_value_list_{ep}.npy', psnr_B2A_value_list)
-    
+
     # np.save(f'output/{method}/plot_data/{name}/iterations_{ep}.npy', iterations)
 
 
