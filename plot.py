@@ -172,8 +172,7 @@ def main():
                  max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)))
         plt.yticks(np.arange(0, max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(
             A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)), 0.05))
-    plt.savefig(f'output/{method}/generator_losses.png',
-                dpi=300)  # Save as high-res image
+    plt.savefig(f'output/{method}/generator_losses.png')  # Save as high-res image
     plt.close()
 
     # Cycle Losses Plot
@@ -212,8 +211,7 @@ def main():
             A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)))
         plt.yticks(np.arange(0, max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(
             A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)), 0.05))
-    plt.savefig(f'output/{method}/cycle_losses.png',
-                dpi=300)  # Save as high-res image
+    plt.savefig(f'output/{method}/cycle_losses.png')  # Save as high-res image
     plt.close()
 
     # Identity Losses Plot
@@ -250,8 +248,7 @@ def main():
                  max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)))
         plt.yticks(np.arange(0, max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(
             A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)), 0.05))
-    plt.savefig(f'output/{method}/identity_losses.png',
-                dpi=300)  # Save as high-res image
+    plt.savefig(f'output/{method}/identity_losses.png')  # Save as high-res image
     plt.close()
 
     # Discriminator Losses Plot
@@ -289,7 +286,7 @@ def main():
         plt.yticks(np.arange(0, max(max(A_d_loss_list), max(B_d_loss_list), max(
             A_d_loss_list_valid), max(B_d_loss_list_valid)), 0.05))
     # Save as high-res image
-    plt.savefig(f'output/{method}/discriminator_losses.png', dpi=300)
+    plt.savefig(f'output/{method}/discriminator_losses.png')
     plt.close()
 
     # Plot the SSIM and PSNR data
@@ -321,8 +318,7 @@ def main():
             psnr_A2B_list_valid), max(psnr_B2A_list_valid)))
         plt.yticks(np.arange(0, max(max(psnr_A2B_list), max(psnr_B2A_list), max(
             psnr_A2B_list_valid), max(psnr_B2A_list_valid)), 2.5))
-    plt.savefig(f'output/{method}/psnr.png',
-                dpi=300)  # Save as high-res image
+    plt.savefig(f'output/{method}/psnr.png')  # Save as high-res image
     plt.close()
 
     plt.figure(figsize=(20, 12))  # Increase figure size
@@ -344,8 +340,7 @@ def main():
     plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
     # plt.ylim(-1, 1)
     # plt.yticks(np.arange(-1, 1, 0.1))
-    plt.savefig(f'output/{method}/ssim.png',
-                dpi=300)  # Save as high-res image
+    plt.savefig(f'output/{method}/ssim.png')  # Save as high-res image
         
     # # Asking for the starting and ending epoch and concatenating the data for the plot
     # # Start epoch
