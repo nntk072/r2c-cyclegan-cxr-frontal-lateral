@@ -271,15 +271,26 @@ lowest_A2B_adversarial_loss_valid_index = np.where(
 lowest_B2A_adversarial_loss_valid_index = np.where(
     B2A_adversarial_loss_valid == lowest_B2A_adversarial_loss_valid)
 
+# Choosing the epoch with the lowest total loss valid to plot the result
+lowest_A2B_total_loss_valid = np.min(A2B_total_loss_valid)
+lowest_B2A_total_loss_valid = np.min(B2A_total_loss_valid)
+lowest_A2B_total_loss_valid_index = np.where(
+    A2B_total_loss_valid == lowest_A2B_total_loss_valid)
+lowest_B2A_total_loss_valid_index = np.where(
+    B2A_total_loss_valid == lowest_B2A_total_loss_valid)
 
 # restore
 # tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
 #     args.experiment_dir, args.method, 'checkpoints')).restore()
 # Restore the lowest_A2B_adversarial_loss_valid_index
 checkDir = 'output/' + method + '/checkpoints'
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+#     f'/ckpt-{lowest_A2B_adversarial_loss_valid_index[0][0]}')
+# Choosing the lowest total loss
 tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
     args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
-    f'/ckpt-{lowest_A2B_adversarial_loss_valid_index[0][0]}')
+    f'/ckpt-{lowest_A2B_total_loss_valid_index[0][0]}')
 @tf.function
 def sample_A2B(A):
     A2B = G_A2B(A, training=False)
@@ -302,6 +313,8 @@ i = 0
 # Print the best epoch for checking
 print(f'Lowest A2B adversarial loss valid: {lowest_A2B_adversarial_loss_valid}')
 print(f'Lowest A2B adversarial loss valid index: {lowest_A2B_adversarial_loss_valid_index[0][0]}')
+print(f'Lowest A2B total loss valid: {lowest_A2B_total_loss_valid}')
+print(f'Lowest A2B total loss valid index: {lowest_A2B_total_loss_valid_index[0][0]}')
 for A, B in zip(A_dataset_test, B_dataset_test):
     A2B, A2B2A = sample_A2B(A)
     for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
@@ -315,10 +328,13 @@ for A, B in zip(A_dataset_test, B_dataset_test):
         i += 1
 
 # Restore the lowest_B2A_adversarial_loss_valid_index
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+#     f'/ckpt-{lowest_B2A_adversarial_loss_valid_index[0][0]}')
+# Choosing the lowest total loss
 tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
     args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
-    f'/ckpt-{lowest_B2A_adversarial_loss_valid_index[0][0]}')
-
+    f'/ckpt-{lowest_B2A_total_loss_valid_index[0][0]}')
 save_dir = py.join(args.experiment_dir, args.method,
                    'samples_testing', 'B2A')
 py.mkdir(save_dir)
@@ -326,6 +342,8 @@ i = 0
 # Print the best epoch for checking
 print(f'Lowest B2A adversarial loss valid: {lowest_B2A_adversarial_loss_valid}')
 print(f'Lowest B2A adversarial loss valid index: {lowest_B2A_adversarial_loss_valid_index[0][0]}')
+print(f'Lowest B2A total loss valid: {lowest_B2A_total_loss_valid}')
+print(f'Lowest B2A total loss valid index: {lowest_B2A_total_loss_valid_index[0][0]}')
 for A, B in zip(A_dataset_test, B_dataset_test):
     B2A, B2A2B = sample_B2A(B)
     for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
