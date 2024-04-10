@@ -16,7 +16,9 @@ import pylib as py
 
 
 def main():
-    method = "unet"
+    # method = "unet"
+    # Make an input
+    method = input('Enter the method: ')
     A2B_g_loss_list = np.array([])
     B2A_g_loss_list = np.array([])
     A2B2A_cycle_loss_list = np.array([])

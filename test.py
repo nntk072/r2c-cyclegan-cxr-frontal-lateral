@@ -5,6 +5,7 @@ import tensorflow as tf
 import tf2lib as tl
 import matplotlib.pyplot as plt
 
+import sys
 import data
 import module
 import os
@@ -19,6 +20,8 @@ py.arg('--experiment_dir', default='output/')
 py.arg('--batch_size', type=int, default=32)
 py.arg('--method', help='convolutional, operational, unet, anotherunet, operational_unet',
        default='convolutional')
+py.arg('--loss_method', help='adversarial, total, cycle, generator, discriminator, identity, all',
+       default='adversarial')
 test_args = py.args()
 args = py.args_from_yaml(
     py.join(test_args.experiment_dir, test_args.method, 'settings.yml'))
@@ -156,7 +159,7 @@ for ep in range(0, 1000):  # the name of the folder is validation
         f'output/{method}/plot_data/validation/ssim_A2B_value_list_{ep}.npy')
     psnr_A2B = np.load(
         f'output/{method}/plot_data/validation/psnr_A2B_value_list_{ep}.npy')
-    
+
     iterations = np.load(
         f'output/{method}/plot_data/validation/iterations_{ep}.npy')
 
@@ -189,19 +192,21 @@ A2B_total_loss = np.add(A2B_adversarial_loss,
 B2A_total_loss = np.add(B2A_adversarial_loss,
                         np.multiply(B2A2B_cycle_loss_list, args.cycle_loss_weight))
 A2B_total_loss_valid = np.add(A2B_adversarial_loss_valid,
-                                np.multiply(A2B2A_cycle_loss_list_valid, args.cycle_loss_weight))
+                              np.multiply(A2B2A_cycle_loss_list_valid, args.cycle_loss_weight))
 B2A_total_loss_valid = np.add(B2A_adversarial_loss_valid,
-                                np.multiply(B2A2B_cycle_loss_list_valid, args.cycle_loss_weight))
+                              np.multiply(B2A2B_cycle_loss_list_valid, args.cycle_loss_weight))
 
 # Plot the Adversarial and Total loss in one plot with the same format as
 
 plt.figure(figsize=(20, 12))  # Increase figure size
-plt.plot(ep_list, A2B_adversarial_loss, label='A2B_adversarial_loss', linewidth=1)
-plt.plot(ep_list, B2A_adversarial_loss, label='B2A_adversarial_loss', linewidth=1)
+plt.plot(ep_list, A2B_adversarial_loss,
+         label='A2B_adversarial_loss', linewidth=1)
+plt.plot(ep_list, B2A_adversarial_loss,
+         label='B2A_adversarial_loss', linewidth=1)
 plt.plot(ep_list_valid, A2B_adversarial_loss_valid,
-            label='A2B_adversarial_loss_valid', linewidth=1)
+         label='A2B_adversarial_loss_valid', linewidth=1)
 plt.plot(ep_list_valid, B2A_adversarial_loss_valid,
-            label='B2A_adversarial_loss_valid', linewidth=1)
+         label='B2A_adversarial_loss_valid', linewidth=1)
 plt.legend(fontsize='large')
 plt.title('Adversarial Losses', fontsize='x-large')
 plt.xlabel('Epochs', fontsize='large')
@@ -223,19 +228,20 @@ elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversari
     plt.yticks(np.arange(0, 1, 0.05))
 else:
     plt.ylim(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss),
-                max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)))
+                    max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)))
     plt.yticks(np.arange(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(
         A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)), 0.1))
-plt.savefig(f'output/{method}/adversarial_losses.png')  # Save as high-res image
+# Save as high-res image
+plt.savefig(f'output/{method}/adversarial_losses.png')
 plt.close()
 
 plt.figure(figsize=(20, 12))  # Increase figure size
 plt.plot(ep_list, A2B_total_loss, label='A2B_total_loss', linewidth=1)
 plt.plot(ep_list, B2A_total_loss, label='B2A_total_loss', linewidth=1)
 plt.plot(ep_list_valid, A2B_total_loss_valid,
-            label='A2B_total_loss_valid', linewidth=1)
+         label='A2B_total_loss_valid', linewidth=1)
 plt.plot(ep_list_valid, B2A_total_loss_valid,
-            label='B2A_total_loss_valid', linewidth=1)
+         label='B2A_total_loss_valid', linewidth=1)
 plt.legend(fontsize='large')
 plt.title('Total Losses', fontsize='x-large')
 plt.xlabel('Epochs', fontsize='large')
@@ -257,7 +263,7 @@ elif max(max(A2B_total_loss), max(B2A_total_loss), max(A2B_total_loss_valid), ma
     plt.yticks(np.arange(0, 1, 0.05))
 else:
     plt.ylim(0, max(max(A2B_total_loss), max(B2A_total_loss),
-                max(A2B_total_loss_valid), max(B2A_total_loss_valid)))
+                    max(A2B_total_loss_valid), max(B2A_total_loss_valid)))
     plt.yticks(np.arange(0, max(max(A2B_total_loss), max(B2A_total_loss), max(
         A2B_total_loss_valid), max(B2A_total_loss_valid)), 0.2))
 plt.savefig(f'output/{method}/total_losses.png')  # Save as high-res image
@@ -279,18 +285,40 @@ lowest_A2B_total_loss_valid_index = np.where(
 lowest_B2A_total_loss_valid_index = np.where(
     B2A_total_loss_valid == lowest_B2A_total_loss_valid)
 
-# restore
-# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-#     args.experiment_dir, args.method, 'checkpoints')).restore()
-# Restore the lowest_A2B_adversarial_loss_valid_index
-checkDir = 'output/' + method + '/checkpoints'
-# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-#     args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
-#     f'/ckpt-{lowest_A2B_adversarial_loss_valid_index[0][0]}')
-# Choosing the lowest total loss
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
-    f'/ckpt-{lowest_A2B_total_loss_valid_index[0][0]}')
+# Choosing the epoch with the lowest cycle loss valid to plot the result
+lowest_A2B_cycle_loss_valid = np.min(A2B2A_cycle_loss_list_valid)
+lowest_B2A_cycle_loss_valid = np.min(B2A2B_cycle_loss_list_valid)
+lowest_A2B_cycle_loss_valid_index = np.where(
+    A2B2A_cycle_loss_list_valid == lowest_A2B_cycle_loss_valid)
+lowest_B2A_cycle_loss_valid_index = np.where(
+    B2A2B_cycle_loss_list_valid == lowest_B2A_cycle_loss_valid)
+
+# Choosing the epoch with the lowest generator loss valid to plot the result
+lowest_A2B_g_loss_valid = np.min(A2B_g_loss_list_valid)
+lowest_B2A_g_loss_valid = np.min(B2A_g_loss_list_valid)
+lowest_A2B_g_loss_list_valid_index = np.where(
+    A2B_g_loss_list_valid == lowest_A2B_g_loss_valid)
+lowest_B2A_g_loss_list_valid_index = np.where(
+    B2A_g_loss_list_valid == lowest_B2A_g_loss_valid)
+
+# Choosing the epoch with the lowest discriminator loss valid to plot the result
+lowest_A2B_d_loss_valid = np.min(A_d_loss_list_valid)
+lowest_B2A_d_loss_valid = np.min(B_d_loss_list_valid)
+lowest_A2B_d_loss_list_valid_index = np.where(
+    A_d_loss_list_valid == lowest_A2B_d_loss_valid)
+lowest_B2A_d_loss_list_valid_index = np.where(
+    B_d_loss_list_valid == lowest_B2A_d_loss_valid)
+
+# Choosing the epoch with the lowest identity loss valid to plot the result
+lowest_A2B_id_loss_valid = np.min(A2A_id_loss_list_valid)
+lowest_B2B_id_loss_valid = np.min(B2B_id_loss_list_valid)
+lowest_A2B_id_loss_list_valid_index = np.where(
+    A2A_id_loss_list_valid == lowest_A2B_id_loss_valid)
+lowest_B2B_id_loss_list_valid_index = np.where(
+    B2B_id_loss_list_valid == lowest_B2B_id_loss_valid)
+
+
+# sample
 @tf.function
 def sample_A2B(A):
     A2B = G_A2B(A, training=False)
@@ -306,15 +334,247 @@ def sample_B2A(B):
 
 
 # run
+# save_dir = py.join(args.experiment_dir, args.method,
+#                    'samples_testing', 'A2B')
 save_dir = py.join(args.experiment_dir, args.method,
-                   'samples_testing', 'A2B')
+                   f'samples_testing_{test_args.loss_method}', 'A2B')
 py.mkdir(save_dir)
-i = 0
+
 # Print the best epoch for checking
-print(f'Lowest A2B adversarial loss valid: {lowest_A2B_adversarial_loss_valid}')
-print(f'Lowest A2B adversarial loss valid index: {lowest_A2B_adversarial_loss_valid_index[0][0]}')
+print(
+    f'Lowest A2B adversarial loss valid: {lowest_A2B_adversarial_loss_valid}')
+print(
+    f'Lowest A2B adversarial loss valid index: {lowest_A2B_adversarial_loss_valid_index[0][0]}')
 print(f'Lowest A2B total loss valid: {lowest_A2B_total_loss_valid}')
-print(f'Lowest A2B total loss valid index: {lowest_A2B_total_loss_valid_index[0][0]}')
+print(
+    f'Lowest A2B total loss valid index: {lowest_A2B_total_loss_valid_index[0][0]}')
+print(f'Lowest A2B cycle loss valid: {lowest_A2B_cycle_loss_valid}')
+print(
+    f'Lowest A2B cycle loss valid index: {lowest_A2B_cycle_loss_valid_index[0][0]}')
+print(f'Lowest A2B generator loss valid: {lowest_A2B_g_loss_valid}')
+print(
+    f'Lowest A2B generator loss valid index: {lowest_A2B_g_loss_list_valid_index[0][0]}')
+print(f'Lowest A2B discriminator loss valid: {lowest_A2B_d_loss_valid}')
+print(
+    f'Lowest A2B discriminator loss valid index: {lowest_A2B_d_loss_list_valid_index[0][0]}')
+print(f'Lowest A2B identity loss valid: {lowest_A2B_id_loss_valid}')
+print(
+    f'Lowest A2B identity loss valid index: {lowest_A2B_id_loss_list_valid_index[0][0]}')
+# restore
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     args.experiment_dir, args.method, 'checkpoints')).restore()
+# Restore the lowest_A2B_adversarial_loss_valid_index
+checkDir = 'output/' + method + '/checkpoints'
+# use loss method to decide whether to use adversarial or total loss to restore
+if test_args.loss_method == 'adversarial':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_adversarial_loss_valid_index[0][0]}')
+elif test_args.loss_method == 'total':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_total_loss_valid_index[0][0]}')
+elif test_args.loss_method == 'cycle':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_cycle_loss_valid_index[0][0]}')
+elif test_args.loss_method == 'generator':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_g_loss_list_valid_index[0][0]}')
+elif test_args.loss_method == 'discriminator':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_d_loss_list_valid_index[0][0]}')
+elif test_args.loss_method == 'identity':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_id_loss_list_valid_index[0][0]}')
+elif test_args.loss_method == 'all':
+    # Do all the cases above
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_adversarial_loss_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_adversarial', 'A2B')
+    py.mkdir(save_dir)
+
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            ev.plot_images_A2B(A_i, A2B_i, B_i,
+                               save_dir, A_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_total_loss_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_total', 'A2B')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            ev.plot_images_A2B(A_i, A2B_i, B_i,
+                               save_dir, A_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_cycle_loss_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_cycle', 'A2B')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            ev.plot_images_A2B(A_i, A2B_i, B_i,
+                               save_dir, A_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_g_loss_list_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_generator', 'A2B')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            ev.plot_images_A2B(A_i, A2B_i, B_i,
+                               save_dir, A_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_d_loss_list_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_discriminator', 'A2B')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            ev.plot_images_A2B(A_i, A2B_i, B_i,
+                               save_dir, A_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_A2B_id_loss_list_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_identity', 'A2B')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            ev.plot_images_A2B(A_i, A2B_i, B_i,
+                               save_dir, A_img_paths_test[i])
+            i += 1
+
+    # Restore the lowest_B2A_adversarial_loss_valid_index
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_adversarial_loss_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_adversarial', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            ev.plot_images_B2A(B_i, B2A_i, A_i,
+                               save_dir, B_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_total_loss_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_total', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            ev.plot_images_B2A(B_i, B2A_i, A_i,
+                               save_dir, B_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_cycle_loss_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_cycle', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            ev.plot_images_B2A(B_i, B2A_i, A_i,
+                               save_dir, B_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_g_loss_list_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_generator', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            ev.plot_images_B2A(B_i, B2A_i, A_i,
+                               save_dir, B_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_d_loss_list_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_discriminator', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            ev.plot_images_B2A(B_i, B2A_i, A_i,
+                               save_dir, B_img_paths_test[i])
+            i += 1
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2B_id_loss_list_valid_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_identity', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            ev.plot_images_B2A(B_i, B2A_i, A_i,
+                               save_dir, B_img_paths_test[i])
+            i += 1
+
+    # Exit the code
+    sys.exit()
+else:
+    # Plot the last epoch
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_last', 'A2B')
+    py.mkdir(save_dir)
+
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore()
+
+
+i = 0
 for A, B in zip(A_dataset_test, B_dataset_test):
     A2B, A2B2A = sample_A2B(A)
     for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
@@ -328,22 +588,47 @@ for A, B in zip(A_dataset_test, B_dataset_test):
         i += 1
 
 # Restore the lowest_B2A_adversarial_loss_valid_index
-# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-#     args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
-#     f'/ckpt-{lowest_B2A_adversarial_loss_valid_index[0][0]}')
-# Choosing the lowest total loss
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
-    f'/ckpt-{lowest_B2A_total_loss_valid_index[0][0]}')
+if test_args.loss_method == 'adversarial':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_adversarial_loss_valid_index[0][0]}')
+elif test_args.loss_method == 'total':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_total_loss_valid_index[0][0]}')
+elif test_args.loss_method == 'cycle':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_cycle_loss_valid_index[0][0]}')
+elif test_args.loss_method == 'generator':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_g_loss_list_valid_index[0][0]}')
+elif test_args.loss_method == 'discriminator':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_d_loss_list_valid_index[0][0]}')
+elif test_args.loss_method == 'identity':
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{lowest_B2A_id_loss_list_valid_index[0][0]}')
+else:
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore()
+# save_dir = py.join(args.experiment_dir, args.method,
+#                    'samples_testing', 'B2A')
 save_dir = py.join(args.experiment_dir, args.method,
-                   'samples_testing', 'B2A')
+                   f'samples_testing_{test_args.loss_method}', 'B2A')
 py.mkdir(save_dir)
 i = 0
 # Print the best epoch for checking
-print(f'Lowest B2A adversarial loss valid: {lowest_B2A_adversarial_loss_valid}')
-print(f'Lowest B2A adversarial loss valid index: {lowest_B2A_adversarial_loss_valid_index[0][0]}')
+print(
+    f'Lowest B2A adversarial loss valid: {lowest_B2A_adversarial_loss_valid}')
+print(
+    f'Lowest B2A adversarial loss valid index: {lowest_B2A_adversarial_loss_valid_index[0][0]}')
 print(f'Lowest B2A total loss valid: {lowest_B2A_total_loss_valid}')
-print(f'Lowest B2A total loss valid index: {lowest_B2A_total_loss_valid_index[0][0]}')
+print(
+    f'Lowest B2A total loss valid index: {lowest_B2A_total_loss_valid_index[0][0]}')
 for A, B in zip(A_dataset_test, B_dataset_test):
     B2A, B2A2B = sample_B2A(B)
     for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
