@@ -228,6 +228,9 @@ elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversari
 elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 1:
     plt.ylim(0, 1)
     plt.yticks(np.arange(0, 1, 0.05))
+elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) > 4:
+    plt.ylim(0, 4)
+    plt.yticks(np.arange(0, 4, 0.2))
 else:
     plt.ylim(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss),
                     max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)))
@@ -263,6 +266,10 @@ elif max(max(A2B_total_loss), max(B2A_total_loss), max(A2B_total_loss_valid), ma
 elif max(max(A2B_total_loss), max(B2A_total_loss), max(A2B_total_loss_valid), max(B2A_total_loss_valid)) < 1:
     plt.ylim(0, 1)
     plt.yticks(np.arange(0, 1, 0.05))
+# Limit into 4
+elif max(max(A2B_total_loss), max(B2A_total_loss), max(A2B_total_loss_valid), max(B2A_total_loss_valid)) > 4:
+    plt.ylim(0, 4)
+    plt.yticks(np.arange(0, 4, 0.2))
 else:
     plt.ylim(0, max(max(A2B_total_loss), max(B2A_total_loss),
                     max(A2B_total_loss_valid), max(B2A_total_loss_valid)))

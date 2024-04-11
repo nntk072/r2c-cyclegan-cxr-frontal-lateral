@@ -169,6 +169,10 @@ def main():
     elif max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) < 1:
         plt.ylim(0, 1)
         plt.yticks(np.arange(0, 1, 0.05))
+    # Limit into 4 if the max value >4
+    elif max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) > 4:
+        plt.ylim(0, 4)
+        plt.yticks(np.arange(0, 4, 0.2))
     else:
         plt.ylim(0, max(max(A2B_g_loss_list), max(B2A_g_loss_list),
                  max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)))
@@ -208,6 +212,10 @@ def main():
     elif max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) < 1:
         plt.ylim(0, 1)
         plt.yticks(np.arange(0, 1, 0.05))
+    # Limit the max value into 4 if the max value >4
+    elif max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) > 4:
+        plt.ylim(0, 4)
+        plt.yticks(np.arange(0, 4, 0.2))
     else:
         plt.ylim(0, max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(
             A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)))
@@ -245,6 +253,10 @@ def main():
     elif max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) < 1:
         plt.ylim(0, 1)
         plt.yticks(np.arange(0, 1, 0.05))
+    # Limit into 4
+    elif max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) > 4:
+        plt.ylim(0, 4)
+        plt.yticks(np.arange(0, 4, 0.2))
     else:
         plt.ylim(0, max(max(A2A_id_loss_list), max(B2B_id_loss_list),
                  max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)))
@@ -282,6 +294,10 @@ def main():
     elif max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) < 1:
         plt.ylim(0, 1)
         plt.yticks(np.arange(0, 1, 0.05))
+    # Limit the number into 4 if the max value >4
+    elif max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) > 4:
+        plt.ylim(0, 4)
+        plt.yticks(np.arange(0, 4, 0.2))
     else:
         plt.ylim(0, max(max(A_d_loss_list), max(B_d_loss_list),
                  max(A_d_loss_list_valid), max(B_d_loss_list_valid)))
