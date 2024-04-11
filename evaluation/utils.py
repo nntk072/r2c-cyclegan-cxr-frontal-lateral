@@ -37,7 +37,7 @@ def compute_psnr_ssim(img1, img2):
     return psnr, ssim
 
 
-def plot_images_A2B(A_i, A2B_i, B_i, save_dir, img_path):
+def plot_images_A2B(A_i, A2B_i, B_i, save_dir, img_path, best_psnr=False, best_ssim=False):
     psnr, ssim = compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
     plt.figure(figsize=(15, 5))
     plt.subplot(131)
@@ -52,16 +52,28 @@ def plot_images_A2B(A_i, A2B_i, B_i, save_dir, img_path):
     plt.imshow(im.dtype.im2uint(B_i.numpy()))
     plt.title('B')
     plt.axis('off')
-    plt.suptitle(f'PSNR: {psnr:.2f}, SSIM: {ssim:.2f}')
+    plt.suptitle(f'PSNR: {psnr:.5f}, SSIM: {ssim:.5f}')
     # Get the image name and extension
     img_name = os.path.basename(img_path)
+    
     # Join the save directory and the image name
-    save_path = os.path.join(save_dir, img_name)
+    if best_psnr and best_ssim:
+        save_path = os.path.join(save_dir, f'best_psnr_ssim')
+        plt.savefig(save_path)
+        plt.close()
+        return psnr, ssim
+    
+    if best_psnr:
+        save_path = os.path.join(save_dir, f'best_psnr')
+    elif best_ssim:
+        save_path = os.path.join(save_dir, f'best_ssim')
+    else:
+        save_path = os.path.join(save_dir, img_name)
     plt.savefig(save_path)
     plt.close()
+    return psnr, ssim
 
-
-def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path):
+def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path, best_psnr=False, best_ssim=False):
     psnr, ssim = compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
     plt.figure(figsize=(15, 5))
     plt.subplot(131)
@@ -80,6 +92,20 @@ def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path):
     # Get the image name and extension
     img_name = os.path.basename(img_path)
     # Join the save directory and the image name
-    save_path = os.path.join(save_dir, img_name)
+    # save_path = os.path.join(save_dir, img_name)
+    if best_psnr and best_ssim:
+        save_path = os.path.join(save_dir, f'best_psnr_ssim')
+        plt.savefig(save_path)
+        plt.close()
+        return psnr, ssim
+
+    if best_psnr:
+        save_path = os.path.join(save_dir, f'best_psnr')
+    elif best_ssim:
+        save_path = os.path.join(save_dir, f'best_ssim')
+    else:
+        save_path = os.path.join(save_dir, img_name)
+
     plt.savefig(save_path)
     plt.close()
+    return psnr, ssim

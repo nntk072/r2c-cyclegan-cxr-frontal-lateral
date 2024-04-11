@@ -199,13 +199,13 @@ py.mkdir(valid_dir)
 # Recognize the value to start the restoration by reading through the folder output/method/plot_data/training/ssim_value_list_number.npy, where the number is the epoch number and the start
 # value is the last epoch number
 start = 0  # start epoch number
-# for i in range(0, 1000):
-#     try:
-#         ssim_value_list = np.load(
-#             py.join(plot_dir, 'training', 'ssim_value_list_' + str(i) + '.npy'))
-#         start = i
-#     except:
-#         break
+for i in range(0, 1000):
+    try:
+        ssim_value_list = np.load(
+            py.join(plot_dir, 'training', 'ssim_A2B_value_list_' + str(i) + '.npy'))
+        start = i
+    except:
+        break
 
 # Restore the checkpoint from 1 to the last epoch, save the validation plot data
 checkDir = checkpoint.directory
