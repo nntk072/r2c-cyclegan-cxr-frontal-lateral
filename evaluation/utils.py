@@ -166,3 +166,31 @@ def plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list, ssim_list, save_dir, img_
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
+
+# Same idea of plot_images_A2B and B2A, but combine them in one function
+def plot_images_A2B_B2A(A_i, A2B_i, B_i, B2A_i, save_dir, epoch):
+    psnr_A2B, ssim_A2B = compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+    psnr_B2A, ssim_B2A = compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+    plt.figure(figsize=(10, 5))
+    plt.subplot(221)
+    plt.imshow(im.dtype.im2uint(A_i.numpy()))
+    plt.title('A')
+    plt.axis('off')
+    plt.subplot(222)
+    plt.imshow(im.dtype.im2uint(A2B_i.numpy()))
+    plt.title(f'A2B\nPSNR: {psnr_A2B:.4f}, SSIM: {ssim_A2B:.4f}')
+    plt.axis('off')
+    plt.subplot(223)
+    plt.imshow(im.dtype.im2uint(B_i.numpy()))
+    plt.title('B')
+    plt.axis('off')
+    plt.subplot(224)
+    plt.imshow(im.dtype.im2uint(B2A_i.numpy()))
+    plt.title(f'B2A\nPSNR: {psnr_B2A:.4f}, SSIM: {ssim_B2A:.4f}')
+    plt.axis('off')
+    plt.tight_layout()
+    # save the image with the epoch number only
+    plt.savefig(os.path.join(save_dir, f'EPOCH - {epoch}.png'))
+    plt.close()
+    
+    
