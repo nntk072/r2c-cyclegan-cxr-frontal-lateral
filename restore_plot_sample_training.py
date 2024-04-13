@@ -115,7 +115,7 @@ A2B_pool = data.ItemPool(args.pool_size)
 B2A_pool = data.ItemPool(args.pool_size)
 
 A_B_dataset_test, _ = data.make_zip_dataset(
-    A_img_paths, B_img_paths, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False)
+    A_img_paths, B_img_paths, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False)
 
 A_img_paths_valid = py.glob(
     py.join(args.datasets_dir, args.dataset, 'validA'), '*.jpg'
@@ -124,7 +124,7 @@ B_img_paths_valid = py.glob(
     py.join(args.datasets_dir, args.dataset, 'validB'), '*.jpg'
 )
 A_B_dataset_valid, valid_len_dataset = data.make_zip_dataset(
-    A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False)
+    A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False)
 
 
 # ==============================================================================
@@ -188,146 +188,39 @@ train_summary_writer = tf.summary.create_file_writer(
 
 # sample
 test_iter = iter(A_B_dataset_test)
-sample_dir = py.join(output_dir, args.method, 'samples_training')
+sample_dir = py.join(output_dir, args.method, 'samples_training_epoch')
 py.mkdir(sample_dir)
 
 # valid
 valid_iter = iter(A_B_dataset_valid)
-valid_dir = py.join(output_dir, args.method, 'samples_valid')
+valid_dir = py.join(output_dir, args.method, 'samples_valid_epoch')
 py.mkdir(valid_dir)
 
 start = 0  # start epoch number
-for i in range(0, 1000):
-    try:
-        ssim_value_list = np.load(
-            py.join(plot_dir, 'training', 'ssim_A2B_value_list_' + str(i) + '.npy'))
-        start = i
-    except:
-        break
-
 # Restore the checkpoint from 1 to the last epoch, save the validation plot data
 checkDir = checkpoint.directory
-i_train = start*len_dataset
-i_valid = start*valid_len_dataset
+
 ep_step = 1000
 # for ep in range(0, ep_step + 1):
-with train_summary_writer.as_default():
-    for ep in range(start, ep_step):
-        # Load model
-        ep_cnt_recover = tf.Variable(
-            initial_value=0, trainable=False, dtype=tf.int64)
-        checkpoint_path = checkDir + '/ckpt-' + str(ep)
-        tl.Checkpoint(dict(G_A2B=model.G_A2B, G_B2A=model.G_B2A, D_A=model.D_A,
-                           D_B=model.D_B, ep_cnt=ep_cnt_recover), checkDir).restore(checkpoint_path)
+for ep in range(start, ep_step):
+    # Load model
+    ep_cnt_recover = tf.Variable(
+        initial_value=0, trainable=False, dtype=tf.int64)
+    checkpoint_path = checkDir + '/ckpt-' + str(ep)
+    tl.Checkpoint(dict(G_A2B=model.G_A2B, G_B2A=model.G_B2A, D_A=model.D_A,
+                       D_B=model.D_B, ep_cnt=ep_cnt_recover), checkDir).restore(checkpoint_path)
 
-        print('Restored epoch: ', ep_cnt_recover.numpy())
+    print('Restored epoch: ', ep_cnt_recover.numpy())
 
-        # Train restoration step (Save the loss values for each iteration, and save the plot after 5 iterations
-        # iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss = [
-        # ], [], [], [], [], [], [], [], []
-        iterations, ssim_value_A2B, psnr_value_A2B, ssim_value_B2A, psnr_value_B2A = [], [], [], [], []
+    if ep % 5 == 0:
+        A, B = next(test_iter)
+        A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
+        img = im.immerge(np.concatenate(
+            [A, A2B, B, B2A], axis=0), n_rows=2)
+        im.imwrite(img, py.join(sample_dir, 'Epoch %04d.jpg' % ep))
 
-        # Restore the loss values for the training also
-        for A, B in tqdm.tqdm(A_B_dataset, desc='Training Epoch Loop', total=len_dataset):
-
-            # A2B, B2A, valid_G_loss = model.valid_G(A, B)
-            # valid_D_loss = model.valid_D(A, B, A2B, B2A)
-            # A2B_g_loss.append(valid_G_loss['A2B_g_loss'])
-            # B2A_g_loss.append(valid_G_loss['B2A_g_loss'])
-            # A2B2A_cycle_loss.append(valid_G_loss['A2B2A_cycle_loss'])
-            # B2A2B_cycle_loss.append(valid_G_loss['B2A2B_cycle_loss'])
-            # A2A_id_loss.append(valid_G_loss['A2A_id_loss'])
-            # B2B_id_loss.append(valid_G_loss['B2B_id_loss'])
-            # A_d_loss.append(valid_D_loss['A_d_loss'])
-            # B_d_loss.append(valid_D_loss['B_d_loss'])
-
-            # Compute the SSIM and the PSNR of the images
-            A2B, B2A, _, _ = model.sample(A, B)
-
-            A = A[0]
-            A2B = A2B[0]
-            B = B[0]
-            B2A = B2A[0]
-            psnr_A2B, ssim_A2B = ev.compute_psnr_ssim(A.numpy(), A2B.numpy())
-            psnr_B2A, ssim_B2A = ev.compute_psnr_ssim(B.numpy(), B2A.numpy())
-
-            ssim_value_A2B.append(ssim_A2B)
-            psnr_value_A2B.append(psnr_A2B)
-            ssim_value_B2A.append(ssim_B2A)
-            psnr_value_B2A.append(psnr_B2A)
-            iterations.append(i_train)
-
-            # Make a dictionary containing the ssim and psnr values for summary the checkpoints
-            summary = {'ssim_A2B': ssim_A2B, 'psnr_A2B': psnr_A2B,
-                       'ssim_B2A': ssim_B2A, 'psnr_B2A': psnr_B2A}
-
-            # Summary
-            tl.summary(summary, step=i_train, name='psnr_ssim')
-            i_train += 1
-
-        # print(A2B_g_loss)
-
-        # Valid step (Save the loss values for each iteration, and save the plot after 5 iterations
-
-        # iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid = [], [], [], [], [], [], [], [], []
-        iterations_valid, ssim_A2B_value_valid, psnr_A2B_value_valid, ssim_B2A_value_valid, psnr_B2A_value_valid = [], [], [], [], []
-
-        for A, B in tqdm.tqdm(A_B_dataset_valid, desc='Valid Epoch Loop', total=valid_len_dataset):
-            # A2B, B2A, valid_G_results = model.valid_G(A, B)
-            # valid_D_results = model.valid_D(A, B, A2B, B2A)
-            # A2B_g_loss_valid.append(valid_G_results['A2B_g_loss'])
-            # B2A_g_loss_valid.append(valid_G_results['B2A_g_loss'])
-            # A2B2A_cycle_loss_valid.append(valid_G_results['A2B2A_cycle_loss'])
-            # B2A2B_cycle_loss_valid.append(valid_G_results['B2A2B_cycle_loss'])
-            # A2A_id_loss_valid.append(valid_G_results['A2A_id_loss'])
-            # B2B_id_loss_valid.append(valid_G_results['B2B_id_loss'])
-            # A_d_loss_valid.append(valid_D_results['A_d_loss'])
-            # B_d_loss_valid.append(valid_D_results['B_d_loss'])
-
-            # Compute the SSIM and the PSNR of the validation results
-            A2B, B2A, _, _ = model.sample(A, B)
-
-            psnr_A2B, ssim_A2B = ev.compute_psnr_ssim(
-                A[0].numpy(), A2B[0].numpy())
-            psnr_B2A, ssim_B2A = ev.compute_psnr_ssim(
-                B[0].numpy(), B2A[0].numpy())
-            ssim_A2B_value_valid.append(ssim_A2B)
-            psnr_A2B_value_valid.append(psnr_A2B)
-            ssim_B2A_value_valid.append(ssim_B2A)
-            psnr_B2A_value_valid.append(psnr_B2A)
-            iterations_valid.append(i_valid)
-
-            # Make a dictionary containing the ssim and psnr values for summary the checkpoints
-            # Summary
-            valid_summary = {'ssim_A2B_valid': ssim_A2B, 'psnr_A2B_valid': psnr_A2B,
-                             'ssim_B2A_valid': ssim_B2A, 'psnr_B2A_valid': psnr_B2A}
-            tl.summary(valid_summary, step=i_valid, name='psnr_ssim_valid')
-
-            i_valid += 1
-        """
-        # Save the loss data for each iteration into a separate file
-        save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss,
-                    B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, "training", args.method)
-
-        # Save the loss validation data for each iteration into a separate file
-        save_plot_data(iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid,
-                    B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid, ep, "validation", args.method)
-
-        temporary_plot(g_loss_dir, d_loss_dir, cycle_loss_dir, id_loss_dir, iterations, A2B_g_loss,
-                    B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep)
-
-        temporary_plot(g_loss_validation_dir, d_loss_validation_dir, cycle_loss_validation_dir, id_loss_validation_dir, iterations_valid, A2B_g_loss_valid,
-                    B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid, ep)
-        """
-
-        # Save the PSNR and SSIM data for the training
-        save_psnr_and_ssim_data(iterations, ssim_value_A2B, psnr_value_A2B,
-                                ssim_value_B2A, psnr_value_B2A, ep, "training", args.method)
-
-        # Save the PSNR and SSIM data for the validation
-        save_psnr_and_ssim_data(iterations_valid, ssim_A2B_value_valid, psnr_A2B_value_valid,
-                                ssim_B2A_value_valid, psnr_B2A_value_valid, ep, "validation", args.method)
-        temporary_plot_psnr_ssim(
-            ssim_dir, psnr_dir, iterations, ssim_value_A2B, psnr_value_A2B, ssim_value_B2A, psnr_value_B2A, ep)
-        temporary_plot_psnr_ssim(ssim_dir_valid, psnr_dir_valid,
-                                 iterations_valid, ssim_A2B_value_valid, psnr_A2B_value_valid, ssim_B2A_value_valid, psnr_B2A_value_valid, ep)
+        A, B = next(valid_iter)
+        A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
+        img = im.immerge(np.concatenate(
+            [A, A2B, B, B2A], axis=0), n_rows=2)
+        im.imwrite(img, py.join(valid_dir, 'Epoch %04d.jpg' % ep))

@@ -55,14 +55,14 @@ def plot_images_A2B(A_i, A2B_i, B_i, save_dir, img_path, best_psnr=False, best_s
     plt.suptitle(f'PSNR: {psnr:.5f}, SSIM: {ssim:.5f}')
     # Get the image name and extension
     img_name = os.path.basename(img_path)
-    
+
     # Join the save directory and the image name
     if best_psnr and best_ssim:
         save_path = os.path.join(save_dir, f'best_psnr_ssim')
         plt.savefig(save_path)
         plt.close()
         return psnr, ssim
-    
+
     if best_psnr:
         save_path = os.path.join(save_dir, f'best_psnr')
     elif best_ssim:
@@ -72,6 +72,7 @@ def plot_images_A2B(A_i, A2B_i, B_i, save_dir, img_path, best_psnr=False, best_s
     plt.savefig(save_path)
     plt.close()
     return psnr, ssim
+
 
 def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path, best_psnr=False, best_ssim=False):
     psnr, ssim = compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
@@ -88,7 +89,7 @@ def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path, best_psnr=False, best_s
     plt.imshow(im.dtype.im2uint(A_i.numpy()))
     plt.title('A')
     plt.axis('off')
-    plt.suptitle(f'PSNR: {psnr:.2f}, SSIM: {ssim:.2f}')
+    plt.suptitle(f'PSNR: {psnr:.4f}, SSIM: {ssim:.4f}')
     # Get the image name and extension
     img_name = os.path.basename(img_path)
     # Join the save directory and the image name
@@ -109,3 +110,59 @@ def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path, best_psnr=False, best_s
     plt.savefig(save_path)
     plt.close()
     return psnr, ssim
+
+
+def plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list, ssim_list, save_dir, img_path, method_list):
+    plt.figure(figsize=(15, 4))
+    A2B_list_length = len(A2B_list)
+    total_plot = 1 + A2B_list_length + 1
+
+    plt.subplot(1, total_plot, 1)
+    plt.imshow(im.dtype.im2uint(A_i.numpy()))
+    plt.title('A')
+    plt.axis('off')
+
+    for i in range(A2B_list_length):
+        plt.subplot(1, total_plot, i+2)
+        plt.imshow(im.dtype.im2uint(A2B_list[i].numpy()))
+        title_text = f'PSNR: {psnr_list[i]:.4f}\nSSIM: {ssim_list[i]:.4f}\nMethod: {method_list[i]}'
+        plt.title(title_text)  # Adjusted title text
+        plt.axis('off')
+
+    plt.subplot(1, total_plot, total_plot)
+    plt.imshow(im.dtype.im2uint(B_i.numpy()))
+    plt.title('B')
+    plt.axis('off')
+
+    img_name = os.path.basename(img_path)
+    save_path = os.path.join(save_dir, img_name)
+
+    # Use tight_layout before saving figure to avoid overlap
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+
+def plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list, ssim_list, save_dir, img_path, method_list):
+    plt.figure(figsize=(15, 4))
+    B2A_list_length = len(B2A_list)
+    total_plot = 1 + B2A_list_length + 1
+    plt.subplot(1, total_plot, 1)
+    plt.imshow(im.dtype.im2uint(B_i.numpy()))
+    plt.title('B')
+    plt.axis('off')
+    for i in range(B2A_list_length):
+        plt.subplot(1, total_plot, i+2)
+        plt.imshow(im.dtype.im2uint(B2A_list[i].numpy()))
+        title_text = f'PSNR: {psnr_list[i]:.4f}\nSSIM: {ssim_list[i]:.4f}\nMethod: {method_list[i]}'
+        plt.title(title_text)  # Adjusted title text
+        plt.axis('off')
+    plt.subplot(1, total_plot, total_plot)
+    plt.imshow(im.dtype.im2uint(A_i.numpy()))
+    plt.title('A')
+    plt.axis('off')
+    img_name = os.path.basename(img_path)
+    save_path = os.path.join(save_dir, img_name)
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()

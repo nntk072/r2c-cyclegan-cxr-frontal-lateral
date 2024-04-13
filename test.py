@@ -20,8 +20,9 @@ py.arg('--experiment_dir', default='output/')
 py.arg('--batch_size', type=int, default=32)
 py.arg('--method', help='convolutional, operational, unet, anotherunet, operational_unet',
        default='convolutional')
-py.arg('--loss_method', help='adversarial, total, cycle, generator, discriminator, identity, all',
+py.arg('--loss_method', help='none, adversarial, total, cycle, generator, discriminator, identity, all',
        default='adversarial')
+py.arg('--evaluation_method', help='none, psnr, ssim, both', default='none')
 test_args = py.args()
 args = py.args_from_yaml(
     py.join(test_args.experiment_dir, test_args.method, 'settings.yml'))
@@ -138,6 +139,10 @@ A2A_id_loss_list_valid = np.array([])
 B2B_id_loss_list_valid = np.array([])
 A_d_loss_list_valid = np.array([])
 B_d_loss_list_valid = np.array([])
+ssim_A2B_list_valid = np.array([])
+psnr_A2B_list_valid = np.array([])
+ssim_B2A_list_valid = np.array([])
+psnr_B2A_list_valid = np.array([])
 
 ep_list_valid = np.array([])
 for ep in range(0, 1000):  # the name of the folder is validation
@@ -161,7 +166,10 @@ for ep in range(0, 1000):  # the name of the folder is validation
         f'output/{method}/plot_data/validation/ssim_A2B_value_list_{ep}.npy')
     psnr_A2B = np.load(
         f'output/{method}/plot_data/validation/psnr_A2B_value_list_{ep}.npy')
-
+    ssim_B2A = np.load(
+        f'output/{method}/plot_data/validation/ssim_B2A_value_list_{ep}.npy')
+    psnr_B2A = np.load(
+        f'output/{method}/plot_data/validation/psnr_B2A_value_list_{ep}.npy')
     iterations = np.load(
         f'output/{method}/plot_data/validation/iterations_{ep}.npy')
 
@@ -180,6 +188,10 @@ for ep in range(0, 1000):  # the name of the folder is validation
         B2B_id_loss_list_valid, np.mean(B2B_id_loss))
     A_d_loss_list_valid = np.append(A_d_loss_list_valid, np.mean(A_d_loss))
     B_d_loss_list_valid = np.append(B_d_loss_list_valid, np.mean(B_d_loss))
+    ssim_A2B_list_valid = np.append(ssim_A2B_list_valid, np.mean(ssim_A2B))
+    psnr_A2B_list_valid = np.append(psnr_A2B_list_valid, np.mean(psnr_A2B))
+    ssim_B2A_list_valid = np.append(ssim_B2A_list_valid, np.mean(ssim_B2A))
+    psnr_B2A_list_valid = np.append(psnr_B2A_list_valid, np.mean(psnr_B2A))
     ep_list_valid = np.append(ep_list_valid, ep)
 
 # Calculate the adversarial loss
@@ -199,7 +211,6 @@ B2A_total_loss_valid = np.add(B2A_adversarial_loss_valid,
                               np.multiply(B2A2B_cycle_loss_list_valid, args.cycle_loss_weight))
 
 # Plot the Adversarial and Total loss in one plot with the same format as
-
 plt.figure(figsize=(20, 12))  # Increase figure size
 plt.plot(ep_list, A2B_adversarial_loss,
          label='A2B_adversarial_loss', linewidth=1)
@@ -326,6 +337,16 @@ lowest_A2B_id_loss_list_valid_index = np.where(
 lowest_B2B_id_loss_list_valid_index = np.where(
     B2B_id_loss_list_valid == lowest_B2B_id_loss_valid)
 
+# Do the same thing with psnr and ssim, but with the highest value
+highest_ssim_A2B = np.max(ssim_A2B_list)
+highest_psnr_A2B = np.max(psnr_A2B_list)
+highest_ssim_B2A = np.max(ssim_B2A_list)
+highest_psnr_B2A = np.max(psnr_B2A_list)
+highest_ssim_A2B_index = np.where(ssim_A2B_list == highest_ssim_A2B)
+highest_psnr_A2B_index = np.where(psnr_A2B_list == highest_psnr_A2B)
+highest_ssim_B2A_index = np.where(ssim_B2A_list == highest_ssim_B2A)
+highest_psnr_B2A_index = np.where(psnr_B2A_list == highest_psnr_B2A)
+
 
 # sample
 @tf.function
@@ -369,6 +390,10 @@ print(
 print(f'Lowest A2B identity loss valid: {lowest_A2B_id_loss_valid}')
 print(
     f'Lowest A2B identity loss valid index: {lowest_A2B_id_loss_list_valid_index[0][0]}')
+print(f'Highest SSIM A2B: {highest_ssim_A2B}')
+print(f'Highest SSIM A2B index: {highest_ssim_A2B_index[0][0]}')
+print(f'Highest PSNR A2B: {highest_psnr_A2B}')
+print(f'Highest PSNR A2B index: {highest_psnr_A2B_index[0][0]}')
 # restore
 # tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
 #     args.experiment_dir, args.method, 'checkpoints')).restore()
@@ -803,3 +828,210 @@ for A, B in zip(A_dataset_test, B_dataset_test):
                                       save_dir, B_img_paths_test[i], best_ssim=True)
 
         i += 1
+
+
+# Do the same thing with psnr and ssim method
+best_psnr = None
+best_ssim = None
+if test_args.evaluation_method == 'none':
+    # Exit the program
+    sys.exit()
+elif test_args.evaluation_method == 'psnr':
+    # Restore the highest_psnr_A2B_index
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{highest_psnr_A2B_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_psnr', 'A2B')
+    py.mkdir(save_dir)
+    i = 0
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i], best_psnr=False)
+            if best_psnr is None or psnr > best_psnr:
+                best_psnr = psnr
+                _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                          save_dir, A_img_paths_test[i], best_psnr=True)
+            if best_ssim is None or ssim > best_ssim:
+                best_ssim = ssim
+                _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                          save_dir, A_img_paths_test[i], best_ssim=True)
+            i += 1
+
+    # Restore the highest_psnr_B2A_index
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{highest_psnr_B2A_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_psnr', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    best_psnr = None
+    best_ssim = None
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i], best_psnr=False)
+            if best_psnr is None or psnr > best_psnr:
+                best_psnr = psnr
+                _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                          save_dir, B_img_paths_test[i], best_psnr=True)
+            if best_ssim is None or ssim > best_ssim:
+                best_ssim = ssim
+                _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                          save_dir, B_img_paths_test[i], best_ssim=True)
+            i += 1
+elif test_args.evaluation_method == 'ssim':
+    # Restore the highest_ssim_A2B_index
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{highest_ssim_A2B_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_ssim', 'A2B')
+    py.mkdir(save_dir)
+    i = 0
+    best_psnr = None
+    best_ssim = None
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i])
+            if best_psnr is None or psnr > best_psnr:
+                best_psnr = psnr
+                _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                          save_dir, A_img_paths_test[i], best_psnr=True)
+            if best_ssim is None or ssim > best_ssim:
+                best_ssim = ssim
+                _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                          save_dir, A_img_paths_test[i], best_ssim=True)
+            i += 1
+
+    # Restore the highest_ssim_B2A_index
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{highest_ssim_B2A_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_ssim', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    best_psnr = None
+    best_ssim = None
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i])
+            if best_psnr is None or psnr > best_psnr:
+                best_psnr = psnr
+                _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                          save_dir, B_img_paths_test[i], best_psnr=True)
+            if best_ssim is None or ssim > best_ssim:
+                best_ssim = ssim
+                _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                          save_dir, B_img_paths_test[i], best_ssim=True)
+            i += 1
+elif test_args.evaluation_method == 'both':
+    # Restore the highest_psnr_A2B_index
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{highest_psnr_A2B_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_psnr', 'A2B')
+    py.mkdir(save_dir)
+    i = 0
+    best_psnr = None
+    best_ssim = None
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i], best_psnr=False)
+            if best_psnr is None or psnr > best_psnr:
+                best_psnr = psnr
+                _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                          save_dir, A_img_paths_test[i], best_psnr=True)
+            if best_ssim is None or ssim > best_ssim:
+                best_ssim = ssim
+                _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                          save_dir, A_img_paths_test[i], best_ssim=True)
+            i += 1
+
+    # Restore the highest_ssim_A2B_index
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{highest_ssim_A2B_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_ssim', 'A2B')
+    py.mkdir(save_dir)
+    i = 0
+    best_psnr = None
+    best_ssim = None
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        A2B, A2B2A = sample_A2B(A)
+        for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i])
+            if best_psnr is None or psnr > best_psnr:
+                best_psnr = psnr
+                _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                          save_dir, A_img_paths_test[i], best_psnr=True)
+            if best_ssim is None or ssim > best_ssim:
+                best_ssim = ssim
+                _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                          save_dir, A_img_paths_test[i], best_ssim=True)
+            i += 1
+
+    # Restore the highest_psnr_B2A_index
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
+                                                                  f'/ckpt-{highest_psnr_B2A_index[0][0]}')
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_psnr', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    best_psnr = None
+    best_ssim = None
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i], best_psnr=False)
+            if best_psnr is None or psnr > best_psnr:
+                best_psnr = psnr
+                _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                          save_dir, B_img_paths_test[i], best_psnr=True)
+            if best_ssim is None or ssim > best_ssim:
+                best_ssim = ssim
+                _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                          save_dir, B_img_paths_test[i], best_ssim=True)
+            i += 1
+
+    # Restore the highest_ssim_B2A_index
+    tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+        args.experiment_dir, args.method, 'checkpoints')).restore(
+            checkDir + f'/ckpt-{highest_ssim_B2A_index[0][0]}'
+    )
+    save_dir = py.join(args.experiment_dir, args.method,
+                       f'samples_testing_ssim', 'B2A')
+    py.mkdir(save_dir)
+    i = 0
+    best_psnr = None
+    best_ssim = None
+    for A, B in zip(A_dataset_test, B_dataset_test):
+        B2A, B2A2B = sample_B2A(B)
+        for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i])
+            if best_psnr is None or psnr > best_psnr:
+                best_psnr = psnr
+                _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                          save_dir, B_img_paths_test[i], best_psnr=True)
+            if best_ssim is None or ssim > best_ssim:
+                best_ssim = ssim
+                _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                          save_dir, B_img_paths_test[i], best_ssim=True)
+            i += 1
