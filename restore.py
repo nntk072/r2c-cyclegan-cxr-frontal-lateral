@@ -241,8 +241,8 @@ with train_summary_writer.as_default():
 
             # Compute the SSIM and the PSNR of the images
             A2B, B2A, _, _ = model.sample(A, B)
-            psnr_A2B, ssim_A2B = ev.compute_psnr_ssim(A[0].numpy(), A2B[0].numpy())
-            psnr_B2A, ssim_B2A = ev.compute_psnr_ssim(B[0].numpy(), B2A[0].numpy())
+            psnr_A2B, ssim_A2B = ev.compute_psnr_ssim(B[0].numpy(), A2B[0].numpy())
+            psnr_B2A, ssim_B2A = ev.compute_psnr_ssim(A[0].numpy(), B2A[0].numpy())
 
             ssim_value_A2B.append(ssim_A2B)
             psnr_value_A2B.append(psnr_A2B)
