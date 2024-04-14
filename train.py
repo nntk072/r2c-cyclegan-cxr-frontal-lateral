@@ -22,23 +22,20 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # =                                   param                                    =
 # ==============================================================================
 
-# py.arg('--dataset', default='CheXpert-v1.0-small')
 py.arg('--dataset', default='')
 py.arg('--plot_data_dir', default='plot_data')
 py.arg('--datasets_dir', default='datasets')
 py.arg('--load_size', type=int, default=286)  # load image to this size
 py.arg('--crop_size', type=int, default=256)  # then crop to this size
 py.arg('--batch_size', type=int, default=1)
-# py.arg('--epochs', type=int, default=200)
 py.arg('--epochs', type=int, default=1000)
 # epoch to start decaying learning rate
 py.arg('--epoch_decay', type=int, default=100)
 py.arg('--lr', type=float, default=0.0002)
 py.arg('--beta_1', type=float, default=0.5)
-py.arg('--adversarial_loss_mode', default='lsgan',
+py.arg('--adversarial_loss_mode', default='gan',
        choices=['gan', 'hinge_v1', 'hinge_v2', 'lsgan', 'wgan'])
-# py.arg('--gradient_penalty_mode', default='none', choices=['none', 'dragan', 'wgan-gp'])
-py.arg('--gradient_penalty_mode', default='wgan-gp',
+py.arg('--gradient_penalty_mode', default='none',
        choices=['none', 'dragan', 'wgan-gp'])
 py.arg('--gradient_penalty_weight', type=float, default=10.0)
 py.arg('--cycle_loss_weight', type=float, default=10.0)
@@ -46,7 +43,8 @@ py.arg('--identity_loss_weight', type=float, default=0.0)
 py.arg('--pool_size', type=int, default=50)  # pool size to store fake samples
 # Order of the operational layer (q parameter).
 py.arg('--q', type=int, default=3)
-py.arg('--method', help='convolutional, operational, unet, anotherunet, operational_unet', default='operational_unet')
+py.arg('--method', help='convolutional, operational, unet, anotherunet, operational_unet',
+       default='convolutional')
 args = py.args()
 
 # output_dir
@@ -115,7 +113,7 @@ A2B_pool = data.ItemPool(args.pool_size)
 B2A_pool = data.ItemPool(args.pool_size)
 
 A_B_dataset_test, _ = data.make_zip_dataset(
-    A_img_paths, B_img_paths, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False)
+    A_img_paths, B_img_paths, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False)
 
 A_img_paths_valid = py.glob(
     py.join(args.datasets_dir, args.dataset, 'validA'), '*.jpg'
@@ -124,7 +122,7 @@ B_img_paths_valid = py.glob(
     py.join(args.datasets_dir, args.dataset, 'validB'), '*.jpg'
 )
 A_B_dataset_valid, valid_len_dataset = data.make_zip_dataset(
-    A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False)
+    A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False)
 
 # ==============================================================================
 # =                                   models                                   =
@@ -213,7 +211,7 @@ with train_summary_writer.as_default():
 
         # train for an epoch
         for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
-        # for A, B in tqdm.tqdm(A_B_dataset.take(10), desc='Inner Epoch Loop', total=len_dataset):
+            # for A, B in tqdm.tqdm(A_B_dataset.take(10), desc='Inner Epoch Loop', total=len_dataset):
 
             G_loss_dict, D_loss_dict = train_step(A, B)
 
@@ -238,23 +236,23 @@ with train_summary_writer.as_default():
             B_d_loss.append(D_loss_dict['B_d_loss'].numpy())
 
             iterations.append(model.G_optimizer.iterations.numpy())
-            if ep != 0 and (ep-1) % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
-            # Plotting 1 epoch for debugging
-            # if ep != 0 and model.G_optimizer.iterations.numpy() % 10 == 0:  # 1/5 epoch
-                # if model.G_optimizer.iterations.numpy() % 100:
+            if ep % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:
+                # if ep != 0 and model.G_optimizer.iterations.numpy() % 10 == 0:  # 1/5 epoch
                 A, B = next(test_iter)
                 A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
-                img = im.immerge(np.concatenate(
-                    [A, A2B, B, B2A], axis=0), n_rows=2)
-                im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' %
-                                        model.G_optimizer.iterations.numpy()))
+                # img = im.immerge(np.concatenate(
+                #     [A, A2B, B, B2A], axis=0), n_rows=2)
+                # im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' %
+                #                         model.G_optimizer.iterations.numpy()))
+                ev.plot_images_A2B_B2A(
+                    A[0], A2B[0], B[0], B2A[0], sample_dir, ep-1)
 
         # Valid step (Save the loss values for each iteration, and save the plot after 5 iterations
         iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid = [], [], [], [], [], [], [], [], []
 
         i = 0
         for A, B in tqdm.tqdm(A_B_dataset_valid, desc='Valid Epoch Loop', total=valid_len_dataset):
-        # for A, B in tqdm.tqdm(A_B_dataset_valid.take(15), desc='Valid Epoch Loop', total=valid_len_dataset):
+            # for A, B in tqdm.tqdm(A_B_dataset_valid.take(15), desc='Valid Epoch Loop', total=valid_len_dataset):
             A2B, B2A, valid_G_results = model.valid_G(A, B)
             valid_D_results = model.valid_D(A, B, A2B, B2A)
             A2B_g_loss_valid.append(valid_G_results['A2B_g_loss_valid'])
@@ -268,6 +266,7 @@ with train_summary_writer.as_default():
             A_d_loss_valid.append(valid_D_results['A_d_loss_valid'])
             B_d_loss_valid.append(valid_D_results['B_d_loss_valid'])
             iterations_valid.append(i)
+            i += 1
 
             # Summary
             tl.summary(valid_G_results,
@@ -275,31 +274,23 @@ with train_summary_writer.as_default():
             tl.summary(valid_D_results,
                        step=model.G_optimizer.iterations, name='D_losses_valid')
 
-            i += 1
-
-            if (ep-1) % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
-                try:
-                    A, B = next(valid_iter)
-                except:
-                    valid_iter = iter(A_B_dataset_valid)
-                    A, B = next(valid_iter)
+            if ep % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
+                A, B = next(valid_iter)
                 A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
-                img = im.immerge(np.concatenate(
-                    [A, A2B, B, B2A], axis=0), n_rows=2)
-                im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' %
-                                        model.G_optimizer.iterations.numpy()))
+                # img = im.immerge(np.concatenate(
+                #     [A, A2B, B, B2A], axis=0), n_rows=2)
+                # im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' %
+                #                         model.G_optimizer.iterations.numpy()))
+                ev.plot_images_A2B_B2A(
+                    A[0], A2B[0], B[0], B2A[0], valid_dir, ep_cnt_recover.numpy())
 
-        # Save the loss data for each iteration into a separate file
         save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss,
                        B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, "training", args.method)
-
-        # Save the loss validation data for each iteration into a separate file
-        save_plot_data(iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid,
-                       B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid, ep, "validation", args.method)
-
         temporary_plot(g_loss_dir, d_loss_dir, cycle_loss_dir, id_loss_dir, iterations, A2B_g_loss,
                        B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep)
 
+        save_plot_data(iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid,
+                       B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid, ep, "validation", args.method)
         temporary_plot(g_loss_validation_dir, d_loss_validation_dir, cycle_loss_validation_dir, id_loss_validation_dir, iterations_valid, A2B_g_loss_valid,
                        B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid, ep)
 

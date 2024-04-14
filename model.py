@@ -190,8 +190,8 @@ class model:
         B2A = self.G_B2A(B, training=False)
         A2B2A = self.G_B2A(A2B, training=False)
         B2A2B = self.G_A2B(B2A, training=False)
-        A2A = self.G_B2A(A, training=True)  # label_A
-        B2B = self.G_A2B(B, training=True)  # label_B
+        A2A = self.G_B2A(A, training=False)  # label_A
+        B2B = self.G_A2B(B, training=False)  # label_B
 
         A2B_d_logits = self.D_B(A2B, training=False)
         B2A_d_logits = self.D_A(B2A, training=False)
