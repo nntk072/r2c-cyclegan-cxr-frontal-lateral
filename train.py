@@ -13,7 +13,7 @@ import tqdm
 import data
 import module
 import model
-import evaluation
+import evaluation as ev
 from plot import temporary_plot, save_plot_data
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
