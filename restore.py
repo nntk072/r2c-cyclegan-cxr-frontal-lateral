@@ -215,7 +215,7 @@ with train_summary_writer.as_default():
     for ep in range(start, ep_step):
         # Load model
         ep_cnt_recover = tf.Variable(
-            initial_value=0, trainable=False, dtype=tf.int64)
+            initial_value=-1, trainable=False, dtype=tf.int64)
         checkpoint_path = checkDir + '/ckpt-' + str(ep)
         tl.Checkpoint(dict(G_A2B=model.G_A2B, G_B2A=model.G_B2A, D_A=model.D_A,
                            D_B=model.D_B, ep_cnt=ep_cnt_recover), checkDir).restore(checkpoint_path)

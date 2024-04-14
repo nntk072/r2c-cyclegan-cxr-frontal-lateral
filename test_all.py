@@ -384,382 +384,382 @@ def sample_B2A(B):
     return B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet
 
 
-# ADVERSARIAL LOSSES
-# Restore all the checkpoints from all methods
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_A2B_adversarial_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
-    test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_A2B_adversarial_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
-    test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_A2B_adversarial_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
-    test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet + f'/ckpt-{operational_unet_values["lowest_A2B_adversarial_loss_valid_index"][0][0]}')
+# # ADVERSARIAL LOSSES
+# # Restore all the checkpoints from all methods
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
+#                                                                        f'/ckpt-{convolutional_values["lowest_A2B_adversarial_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
+#     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
+#                                                                      f'/ckpt-{operational_values["lowest_A2B_adversarial_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
+#     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
+#                                                               f'/ckpt-{unet_values["lowest_A2B_adversarial_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
+#     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet + f'/ckpt-{operational_unet_values["lowest_A2B_adversarial_loss_valid_index"][0][0]}')
 
-# Set the save directory for the samples
-save_dir = py.join(test_args.experiment_dir, test_args.method,
-                   f'samples_testing_adversarial', 'A2B')
-py.mkdir(save_dir)
-i = 0
+# # Set the save directory for the samples
+# save_dir = py.join(test_args.experiment_dir, test_args.method,
+#                    f'samples_testing_adversarial', 'A2B')
+# py.mkdir(save_dir)
+# i = 0
 
-for A, B in zip(A_dataset_test, B_dataset_test):
-    A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
-        A)
-    for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
-        psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
-        psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
-        psnr_unet, ssim_unet = ev.compute_psnr_ssim(
-            A2B_unet_i.numpy(), B_i.numpy())
-        psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
-            A2B_opunet_i.numpy(), B_i.numpy())
-        A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
-        A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
-        psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
-        ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
-        method_list = ["convolutional",
-                       "operational", "unet", "operational_unet"]
-        ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
-                               ssim_list, save_dir, A_img_paths_test[i], method_list)
-        i += 1
+# for A, B in zip(A_dataset_test, B_dataset_test):
+#     A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
+#         A)
+#     for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
+#         psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+#         psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
+#         psnr_unet, ssim_unet = ev.compute_psnr_ssim(
+#             A2B_unet_i.numpy(), B_i.numpy())
+#         psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
+#             A2B_opunet_i.numpy(), B_i.numpy())
+#         A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
+#         A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
+#         psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
+#         ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
+#         method_list = ["convolutional",
+#                        "operational", "unet", "operational_unet"]
+#         ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
+#                                ssim_list, save_dir, A_img_paths_test[i], method_list)
+#         i += 1
+# # Restore the checkpoints from all methods
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
+#                                                                        f'/ckpt-{convolutional_values["lowest_B2A_adversarial_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
+#     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
+#                                                                      f'/ckpt-{operational_values["lowest_B2A_adversarial_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
+#     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
+#                                                               f'/ckpt-{unet_values["lowest_B2A_adversarial_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
+#     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
+#                                                                           f'/ckpt-{operational_unet_values["lowest_B2A_adversarial_loss_valid_index"][0][0]}')
+
+# # Set the save directory for the samples
+# save_dir = py.join(test_args.experiment_dir, test_args.method,
+#                    f'samples_testing_adversarial', 'B2A')
+# py.mkdir(save_dir)
+# i = 0
+# for A, B in zip(A_dataset_test, B_dataset_test):
+#     B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet = sample_B2A(
+#         B)
+#     for B_i, B2A_i, B2A2B_i, B2A_op_i, B2A2B_op_i, B2A_unet_i, B2A2B_unet_i, B2A_opunet_i, B2A2B_opunet_i, A_i in zip(B, B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet, A):
+#         psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+#         psnr_op, ssim_op = ev.compute_psnr_ssim(B2A_op_i.numpy(), A_i.numpy())
+#         psnr_unet, ssim_unet = ev.compute_psnr_ssim(
+#             B2A_unet_i.numpy(), A_i.numpy())
+#         psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
+#             B2A_opunet_i.numpy(), A_i.numpy())
+#         B2A_list = [B2A_i, B2A_op_i, B2A_unet_i, B2A_opunet_i]
+#         B2A2B_list = [B2A2B_i, B2A2B_op_i, B2A2B_unet_i, B2A2B_opunet_i]
+#         psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
+#         ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
+
+#         method_list = ["convolutional",
+#                        "operational", "unet", "operational_unet"]
+#         ev.plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list,
+#                                ssim_list, save_dir, A_img_paths_test[i], method_list)
+#         i += 1
+
+# # TOTAL LOSSES
+# # Restore all the checkpoints from all methods
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
+#                                                                        f'/ckpt-{convolutional_values["lowest_A2B_total_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
+#     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
+#                                                                      f'/ckpt-{operational_values["lowest_A2B_total_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
+#     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
+#                                                               f'/ckpt-{unet_values["lowest_A2B_total_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
+#     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
+#                                                                           f'/ckpt-{operational_unet_values["lowest_A2B_total_loss_valid_index"][0][0]}')
+
+# # Set the save directory for the samples
+# save_dir = py.join(test_args.experiment_dir, test_args.method,
+#                    f'samples_testing_total', 'A2B')
+# py.mkdir(save_dir)
+# i = 0
+
+# for A, B in zip(A_dataset_test, B_dataset_test):
+#     A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
+#         A)
+#     for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
+#         psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+#         psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
+#         psnr_unet, ssim_unet = ev.compute_psnr_ssim(
+#             A2B_unet_i.numpy(), B_i.numpy())
+#         psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
+#             A2B_opunet_i.numpy(), B_i.numpy())
+#         A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
+#         A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
+#         psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
+#         ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
+#         method_list = ["convolutional",
+#                        "operational", "unet", "operational_unet"]
+#         ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
+#                                ssim_list, save_dir, A_img_paths_test[i], method_list)
+#         i += 1
+
+# # Restore the checkpoints from all methods
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
+#                                                                        f'/ckpt-{convolutional_values["lowest_B2A_total_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
+#     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
+#                                                                      f'/ckpt-{operational_values["lowest_B2A_total_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
+#     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
+#                                                               f'/ckpt-{unet_values["lowest_B2A_total_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
+#     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
+#                                                                           f'/ckpt-{operational_unet_values["lowest_B2A_total_loss_valid_index"][0][0]}')
+
+# # Set the save directory for the samples
+# save_dir = py.join(test_args.experiment_dir, test_args.method,
+#                    f'samples_testing_total', 'B2A')
+# py.mkdir(save_dir)
+# i = 0
+# for A, B in zip(A_dataset_test, B_dataset_test):
+#     B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet = sample_B2A(
+#         B)
+#     for B_i, B2A_i, B2A2B_i, B2A_op_i, B2A2B_op_i, B2A_unet_i, B2A2B_unet_i, B2A_opunet_i, B2A2B_opunet_i, A_i in zip(B, B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet, A):
+#         psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+#         psnr_op, ssim_op = ev.compute_psnr_ssim(B2A_op_i.numpy(), A_i.numpy())
+#         psnr_unet, ssim_unet = ev.compute_psnr_ssim(
+#             B2A_unet_i.numpy(), A_i.numpy())
+#         psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
+#             B2A_opunet_i.numpy(), A_i.numpy())
+#         B2A_list = [B2A_i, B2A_op_i, B2A_unet_i, B2A_opunet_i]
+#         B2A2B_list = [B2A2B_i, B2A2B_op_i, B2A2B_unet_i, B2A2B_opunet_i]
+#         psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
+#         ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
+
+#         method_list = ["convolutional",
+#                        "operational", "unet", "operational_unet"]
+#         ev.plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list,
+#                                ssim_list, save_dir, A_img_paths_test[i], method_list)
+#         i += 1
+
+# # CYCLE LOSSES
+# # Restore all the checkpoints from all methods
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
+#                                                                        f'/ckpt-{convolutional_values["lowest_A2B_cycle_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
+#     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
+#                                                                      f'/ckpt-{operational_values["lowest_A2B_cycle_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
+#     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
+#                                                               f'/ckpt-{unet_values["lowest_A2B_cycle_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
+#     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
+#                                                                           f'/ckpt-{operational_unet_values["lowest_A2B_cycle_loss_valid_index"][0][0]}')
+
+# # Set the save directory for the samples
+# save_dir = py.join(test_args.experiment_dir, test_args.method,
+#                    f'samples_testing_cycle', 'A2B')
+# py.mkdir(save_dir)
+# i = 0
+
+# for A, B in zip(A_dataset_test, B_dataset_test):
+#     A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
+#         A)
+#     for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
+#         psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+#         psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
+#         psnr_unet, ssim_unet = ev.compute_psnr_ssim(
+#             A2B_unet_i.numpy(), B_i.numpy())
+#         psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
+#             A2B_opunet_i.numpy(), B_i.numpy())
+#         A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
+#         A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
+#         psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
+#         ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
+#         method_list = ["convolutional",
+#                        "operational", "unet", "operational_unet"]
+#         ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
+#                                ssim_list, save_dir, A_img_paths_test[i], method_list)
+#         i += 1
+
+# # Restore the checkpoints from all methods
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
+#                                                                        f'/ckpt-{convolutional_values["lowest_B2A_cycle_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
+#     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
+#                                                                      f'/ckpt-{operational_values["lowest_B2A_cycle_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
+#     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
+#                                                               f'/ckpt-{unet_values["lowest_B2A_cycle_loss_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
+#     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
+#                                                                           f'/ckpt-{operational_unet_values["lowest_B2A_cycle_loss_valid_index"][0][0]}')
+
+# # Set the save directory for the samples
+# save_dir = py.join(test_args.experiment_dir, test_args.method,
+#                    f'samples_testing_cycle', 'B2A')
+# py.mkdir(save_dir)
+# i = 0
+# for A, B in zip(A_dataset_test, B_dataset_test):
+#     B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet = sample_B2A(
+#         B)
+#     for B_i, B2A_i, B2A2B_i, B2A_op_i, B2A2B_op_i, B2A_unet_i, B2A2B_unet_i, B2A_opunet_i, B2A2B_opunet_i, A_i in zip(B, B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet, A):
+#         psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+#         psnr_op, ssim_op = ev.compute_psnr_ssim(B2A_op_i.numpy(), A_i.numpy())
+#         psnr_unet, ssim_unet = ev.compute_psnr_ssim(
+#             B2A_unet_i.numpy(), A_i.numpy())
+#         psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
+#             B2A_opunet_i.numpy(), A_i.numpy())
+#         B2A_list = [B2A_i, B2A_op_i, B2A_unet_i, B2A_opunet_i]
+#         B2A2B_list = [B2A2B_i, B2A2B_op_i, B2A2B_unet_i, B2A2B_opunet_i]
+#         psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
+#         ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
+
+#         method_list = ["convolutional",
+#                        "operational", "unet", "operational_unet"]
+#         ev.plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list,
+#                                ssim_list, save_dir, A_img_paths_test[i], method_list)
+#         i += 1
+
+# # GENERATOR LOSSES
+# # Restore all the checkpoints from all methods
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
+#                                                                        f'/ckpt-{convolutional_values["lowest_A2B_g_loss_list_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
+#     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
+#                                                                      f'/ckpt-{operational_values["lowest_A2B_g_loss_list_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
+#     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
+#                                                               f'/ckpt-{unet_values["lowest_A2B_g_loss_list_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
+#     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
+#                                                                           f'/ckpt-{operational_unet_values["lowest_A2B_g_loss_list_valid_index"][0][0]}')
+
+# # Set the save directory for the samples
+# save_dir = py.join(test_args.experiment_dir, test_args.method,
+#                    f'samples_testing_generator', 'A2B')
+# py.mkdir(save_dir)
+# i = 0
+
+# for A, B in zip(A_dataset_test, B_dataset_test):
+#     A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
+#         A)
+#     for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
+#         psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+#         psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
+#         psnr_unet, ssim_unet = ev.compute_psnr_ssim(
+#             A2B_unet_i.numpy(), B_i.numpy())
+#         psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
+#             A2B_opunet_i.numpy(), B_i.numpy())
+#         A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
+#         A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
+#         psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
+#         ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
+#         method_list = ["convolutional",
+#                        "operational", "unet", "operational_unet"]
+#         ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
+#                                ssim_list, save_dir, A_img_paths_test[i], method_list)
+#         i += 1
+
+# # Restore the checkpoints from all methods
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
+#                                                                        f'/ckpt-{convolutional_values["lowest_B2A_g_loss_list_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
+#     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
+#                                                                      f'/ckpt-{operational_values["lowest_B2A_g_loss_list_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
+#     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
+#                                                               f'/ckpt-{unet_values["lowest_B2A_g_loss_list_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
+#     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
+#                                                                           f'/ckpt-{operational_unet_values["lowest_B2A_g_loss_list_valid_index"][0][0]}')
+
+# # Set the save directory for the samples
+# save_dir = py.join(test_args.experiment_dir, test_args.method,
+#                    f'samples_testing_generator', 'B2A')
+# py.mkdir(save_dir)
+# i = 0
+# for A, B in zip(A_dataset_test, B_dataset_test):
+#     B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet = sample_B2A(
+#         B)
+#     for B_i, B2A_i, B2A2B_i, B2A_op_i, B2A2B_op_i, B2A_unet_i, B2A2B_unet_i, B2A_opunet_i, B2A2B_opunet_i, A_i in zip(B, B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet, A):
+#         psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+#         psnr_op, ssim_op = ev.compute_psnr_ssim(B2A_op_i.numpy(), A_i.numpy())
+#         psnr_unet, ssim_unet = ev.compute_psnr_ssim(
+#             B2A_unet_i.numpy(), A_i.numpy())
+#         psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
+#             B2A_opunet_i.numpy(), A_i.numpy())
+#         B2A_list = [B2A_i, B2A_op_i, B2A_unet_i, B2A_opunet_i]
+#         B2A2B_list = [B2A2B_i, B2A2B_op_i, B2A2B_unet_i, B2A2B_opunet_i]
+#         psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
+#         ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
+
+#         method_list = ["convolutional",
+#                        "operational", "unet", "operational_unet"]
+#         ev.plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list,
+#                                ssim_list, save_dir, A_img_paths_test[i], method_list)
+#         i += 1
+
+# # IDENTITY LOSSES
+# # Restore all the checkpoints from all methods
+# tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
+#     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
+#                                                                        f'/ckpt-{convolutional_values["lowest_A2B_d_loss_list_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
+#     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
+#                                                                      f'/ckpt-{operational_values["lowest_A2B_d_loss_list_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
+#     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
+#                                                               f'/ckpt-{unet_values["lowest_A2B_d_loss_list_valid_index"][0][0]}')
+# tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
+#     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
+#                                                                           f'/ckpt-{operational_unet_values["lowest_A2B_d_loss_list_valid_index"][0][0]}')
+
+# # Set the save directory for the samples
+# save_dir = py.join(test_args.experiment_dir, test_args.method,
+#                    f'samples_testing_identity', 'A2B')
+# py.mkdir(save_dir)
+# i = 0
+
+# for A, B in zip(A_dataset_test, B_dataset_test):
+#     A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
+#         A)
+#     for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
+#         psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+#         psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
+#         psnr_unet, ssim_unet = ev.compute_psnr_ssim(
+#             A2B_unet_i.numpy(), B_i.numpy())
+#         psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
+#             A2B_opunet_i.numpy(), B_i.numpy())
+#         A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
+#         A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
+#         psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
+#         ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
+#         method_list = ["convolutional",
+#                        "operational", "unet", "operational_unet"]
+#         ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
+#                                ssim_list, save_dir, A_img_paths_test[i], method_list)
+#         i += 1
+
 # Restore the checkpoints from all methods
 tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
     test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_B2A_adversarial_loss_valid_index"][0][0]}')
+                                                                       f'/ckpt-{convolutional_values["lowest_B2A_d_loss_list_valid_index"][0][0]}')
 tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
     test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_B2A_adversarial_loss_valid_index"][0][0]}')
+                                                                     f'/ckpt-{operational_values["lowest_B2A_d_loss_list_valid_index"][0][0]}')
 tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
     test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_B2A_adversarial_loss_valid_index"][0][0]}')
+                                                              f'/ckpt-{unet_values["lowest_B2A_d_loss_list_valid_index"][0][0]}')
 tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
     test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
-                                                                          f'/ckpt-{operational_unet_values["lowest_B2A_adversarial_loss_valid_index"][0][0]}')
-
-# Set the save directory for the samples
-save_dir = py.join(test_args.experiment_dir, test_args.method,
-                   f'samples_testing_adversarial', 'B2A')
-py.mkdir(save_dir)
-i = 0
-for A, B in zip(A_dataset_test, B_dataset_test):
-    B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet = sample_B2A(
-        B)
-    for B_i, B2A_i, B2A2B_i, B2A_op_i, B2A2B_op_i, B2A_unet_i, B2A2B_unet_i, B2A_opunet_i, B2A2B_opunet_i, A_i in zip(B, B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet, A):
-        psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
-        psnr_op, ssim_op = ev.compute_psnr_ssim(B2A_op_i.numpy(), A_i.numpy())
-        psnr_unet, ssim_unet = ev.compute_psnr_ssim(
-            B2A_unet_i.numpy(), A_i.numpy())
-        psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
-            B2A_opunet_i.numpy(), A_i.numpy())
-        B2A_list = [B2A_i, B2A_op_i, B2A_unet_i, B2A_opunet_i]
-        B2A2B_list = [B2A2B_i, B2A2B_op_i, B2A2B_unet_i, B2A2B_opunet_i]
-        psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
-        ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
-
-        method_list = ["convolutional",
-                       "operational", "unet", "operational_unet"]
-        ev.plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list,
-                               ssim_list, save_dir, A_img_paths_test[i], method_list)
-        i += 1
-
-# TOTAL LOSSES
-# Restore all the checkpoints from all methods
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_A2B_total_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
-    test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_A2B_total_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
-    test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_A2B_total_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
-    test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
-                                                                          f'/ckpt-{operational_unet_values["lowest_A2B_total_loss_valid_index"][0][0]}')
-
-# Set the save directory for the samples
-save_dir = py.join(test_args.experiment_dir, test_args.method,
-                   f'samples_testing_total', 'A2B')
-py.mkdir(save_dir)
-i = 0
-
-for A, B in zip(A_dataset_test, B_dataset_test):
-    A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
-        A)
-    for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
-        psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
-        psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
-        psnr_unet, ssim_unet = ev.compute_psnr_ssim(
-            A2B_unet_i.numpy(), B_i.numpy())
-        psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
-            A2B_opunet_i.numpy(), B_i.numpy())
-        A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
-        A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
-        psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
-        ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
-        method_list = ["convolutional",
-                       "operational", "unet", "operational_unet"]
-        ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
-                               ssim_list, save_dir, A_img_paths_test[i], method_list)
-        i += 1
-
-# Restore the checkpoints from all methods
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_B2A_total_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
-    test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_B2A_total_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
-    test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_B2A_total_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
-    test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
-                                                                          f'/ckpt-{operational_unet_values["lowest_B2A_total_loss_valid_index"][0][0]}')
-
-# Set the save directory for the samples
-save_dir = py.join(test_args.experiment_dir, test_args.method,
-                   f'samples_testing_total', 'B2A')
-py.mkdir(save_dir)
-i = 0
-for A, B in zip(A_dataset_test, B_dataset_test):
-    B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet = sample_B2A(
-        B)
-    for B_i, B2A_i, B2A2B_i, B2A_op_i, B2A2B_op_i, B2A_unet_i, B2A2B_unet_i, B2A_opunet_i, B2A2B_opunet_i, A_i in zip(B, B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet, A):
-        psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
-        psnr_op, ssim_op = ev.compute_psnr_ssim(B2A_op_i.numpy(), A_i.numpy())
-        psnr_unet, ssim_unet = ev.compute_psnr_ssim(
-            B2A_unet_i.numpy(), A_i.numpy())
-        psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
-            B2A_opunet_i.numpy(), A_i.numpy())
-        B2A_list = [B2A_i, B2A_op_i, B2A_unet_i, B2A_opunet_i]
-        B2A2B_list = [B2A2B_i, B2A2B_op_i, B2A2B_unet_i, B2A2B_opunet_i]
-        psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
-        ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
-
-        method_list = ["convolutional",
-                       "operational", "unet", "operational_unet"]
-        ev.plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list,
-                               ssim_list, save_dir, A_img_paths_test[i], method_list)
-        i += 1
-
-# CYCLE LOSSES
-# Restore all the checkpoints from all methods
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_A2B_cycle_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
-    test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_A2B_cycle_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
-    test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_A2B_cycle_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
-    test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
-                                                                          f'/ckpt-{operational_unet_values["lowest_A2B_cycle_loss_valid_index"][0][0]}')
-
-# Set the save directory for the samples
-save_dir = py.join(test_args.experiment_dir, test_args.method,
-                   f'samples_testing_cycle', 'A2B')
-py.mkdir(save_dir)
-i = 0
-
-for A, B in zip(A_dataset_test, B_dataset_test):
-    A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
-        A)
-    for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
-        psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
-        psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
-        psnr_unet, ssim_unet = ev.compute_psnr_ssim(
-            A2B_unet_i.numpy(), B_i.numpy())
-        psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
-            A2B_opunet_i.numpy(), B_i.numpy())
-        A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
-        A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
-        psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
-        ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
-        method_list = ["convolutional",
-                       "operational", "unet", "operational_unet"]
-        ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
-                               ssim_list, save_dir, A_img_paths_test[i], method_list)
-        i += 1
-
-# Restore the checkpoints from all methods
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_B2A_cycle_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
-    test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_B2A_cycle_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
-    test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_B2A_cycle_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
-    test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
-                                                                          f'/ckpt-{operational_unet_values["lowest_B2A_cycle_loss_valid_index"][0][0]}')
-
-# Set the save directory for the samples
-save_dir = py.join(test_args.experiment_dir, test_args.method,
-                   f'samples_testing_cycle', 'B2A')
-py.mkdir(save_dir)
-i = 0
-for A, B in zip(A_dataset_test, B_dataset_test):
-    B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet = sample_B2A(
-        B)
-    for B_i, B2A_i, B2A2B_i, B2A_op_i, B2A2B_op_i, B2A_unet_i, B2A2B_unet_i, B2A_opunet_i, B2A2B_opunet_i, A_i in zip(B, B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet, A):
-        psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
-        psnr_op, ssim_op = ev.compute_psnr_ssim(B2A_op_i.numpy(), A_i.numpy())
-        psnr_unet, ssim_unet = ev.compute_psnr_ssim(
-            B2A_unet_i.numpy(), A_i.numpy())
-        psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
-            B2A_opunet_i.numpy(), A_i.numpy())
-        B2A_list = [B2A_i, B2A_op_i, B2A_unet_i, B2A_opunet_i]
-        B2A2B_list = [B2A2B_i, B2A2B_op_i, B2A2B_unet_i, B2A2B_opunet_i]
-        psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
-        ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
-
-        method_list = ["convolutional",
-                       "operational", "unet", "operational_unet"]
-        ev.plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list,
-                               ssim_list, save_dir, A_img_paths_test[i], method_list)
-        i += 1
-
-# GENERATOR LOSSES
-# Restore all the checkpoints from all methods
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_A2B_g_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
-    test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_A2B_g_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
-    test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_A2B_g_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
-    test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
-                                                                          f'/ckpt-{operational_unet_values["lowest_A2B_g_loss_valid_index"][0][0]}')
-
-# Set the save directory for the samples
-save_dir = py.join(test_args.experiment_dir, test_args.method,
-                   f'samples_testing_generator', 'A2B')
-py.mkdir(save_dir)
-i = 0
-
-for A, B in zip(A_dataset_test, B_dataset_test):
-    A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
-        A)
-    for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
-        psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
-        psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
-        psnr_unet, ssim_unet = ev.compute_psnr_ssim(
-            A2B_unet_i.numpy(), B_i.numpy())
-        psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
-            A2B_opunet_i.numpy(), B_i.numpy())
-        A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
-        A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
-        psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
-        ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
-        method_list = ["convolutional",
-                       "operational", "unet", "operational_unet"]
-        ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
-                               ssim_list, save_dir, A_img_paths_test[i], method_list)
-        i += 1
-
-# Restore the checkpoints from all methods
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_B2A_g_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
-    test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_B2A_g_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
-    test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_B2A_g_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
-    test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
-                                                                          f'/ckpt-{operational_unet_values["lowest_B2A_g_loss_valid_index"][0][0]}')
-
-# Set the save directory for the samples
-save_dir = py.join(test_args.experiment_dir, test_args.method,
-                   f'samples_testing_generator', 'B2A')
-py.mkdir(save_dir)
-i = 0
-for A, B in zip(A_dataset_test, B_dataset_test):
-    B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet = sample_B2A(
-        B)
-    for B_i, B2A_i, B2A2B_i, B2A_op_i, B2A2B_op_i, B2A_unet_i, B2A2B_unet_i, B2A_opunet_i, B2A2B_opunet_i, A_i in zip(B, B2A, B2A2B, B2A_op, B2A2B_op, B2A_unet, B2A2B_unet, B2A_opunet, B2A2B_opunet, A):
-        psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
-        psnr_op, ssim_op = ev.compute_psnr_ssim(B2A_op_i.numpy(), A_i.numpy())
-        psnr_unet, ssim_unet = ev.compute_psnr_ssim(
-            B2A_unet_i.numpy(), A_i.numpy())
-        psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
-            B2A_opunet_i.numpy(), A_i.numpy())
-        B2A_list = [B2A_i, B2A_op_i, B2A_unet_i, B2A_opunet_i]
-        B2A2B_list = [B2A2B_i, B2A2B_op_i, B2A2B_unet_i, B2A2B_opunet_i]
-        psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
-        ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
-
-        method_list = ["convolutional",
-                       "operational", "unet", "operational_unet"]
-        ev.plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list,
-                               ssim_list, save_dir, A_img_paths_test[i], method_list)
-        i += 1
-
-# IDENTITY LOSSES
-# Restore all the checkpoints from all methods
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_A2B_identity_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
-    test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_A2B_identity_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
-    test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_A2B_identity_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
-    test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
-                                                                          f'/ckpt-{operational_unet_values["lowest_A2B_identity_loss_valid_index"][0][0]}')
-
-# Set the save directory for the samples
-save_dir = py.join(test_args.experiment_dir, test_args.method,
-                   f'samples_testing_identity', 'A2B')
-py.mkdir(save_dir)
-i = 0
-
-for A, B in zip(A_dataset_test, B_dataset_test):
-    A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet = sample_A2B(
-        A)
-    for A_i, A2B_i, A2B2A_i, A2B_op_i, A2B2A_op_i, A2B_unet_i, A2B2A_unet_i, A2B_opunet_i, A2B2A_opunet_i, B_i in zip(A, A2B, A2B2A, A2B_op, A2B2A_op, A2B_unet, A2B2A_unet, A2B_opunet, A2B2A_opunet, B):
-        psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
-        psnr_op, ssim_op = ev.compute_psnr_ssim(A2B_op_i.numpy(), B_i.numpy())
-        psnr_unet, ssim_unet = ev.compute_psnr_ssim(
-            A2B_unet_i.numpy(), B_i.numpy())
-        psnr_opunet, ssim_opunet = ev.compute_psnr_ssim(
-            A2B_opunet_i.numpy(), B_i.numpy())
-        A2B_list = [A2B_i, A2B_op_i, A2B_unet_i, A2B_opunet_i]
-        A2B2A_list = [A2B2A_i, A2B2A_op_i, A2B2A_unet_i, A2B2A_opunet_i]
-        psnr_list = [psnr, psnr_op, psnr_unet, psnr_opunet]
-        ssim_list = [ssim, ssim_op, ssim_unet, ssim_opunet]
-        method_list = ["convolutional",
-                       "operational", "unet", "operational_unet"]
-        ev.plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list,
-                               ssim_list, save_dir, A_img_paths_test[i], method_list)
-        i += 1
-
-# Restore the checkpoints from all methods
-tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
-    test_args.experiment_dir, 'convolutional', 'checkpoints')).restore(checkDir +
-                                                                       f'/ckpt-{convolutional_values["lowest_B2A_identity_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_op, G_B2A=G_B2A_op), py.join(
-    test_args.experiment_dir, 'operational', 'checkpoints')).restore(checkDir_op +
-                                                                     f'/ckpt-{operational_values["lowest_B2A_identity_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_unet, G_B2A=G_B2A_unet), py.join(
-    test_args.experiment_dir, 'unet', 'checkpoints')).restore(checkDir_unet +
-                                                              f'/ckpt-{unet_values["lowest_B2A_identity_loss_valid_index"][0][0]}')
-tl.Checkpoint(dict(G_A2B=G_A2B_opunet, G_B2A=G_B2A_opunet), py.join(
-    test_args.experiment_dir, 'operational_unet', 'checkpoints')).restore(checkDir_opunet +
-                                                                          f'/ckpt-{operational_unet_values["lowest_B2A_identity_loss_valid_index"][0][0]}')
+                                                                          f'/ckpt-{operational_unet_values["lowest_B2A_d_loss_list_valid_index"][0][0]}')
 
 # Set the save directory for the samples
 save_dir = py.join(test_args.experiment_dir, test_args.method,

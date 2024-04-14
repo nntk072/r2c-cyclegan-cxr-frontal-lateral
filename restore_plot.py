@@ -206,7 +206,7 @@ for ep in range(start, ep_step):
     if ep % 5 == 0:
         # Load model
         ep_cnt_recover = tf.Variable(
-            initial_value=0, trainable=False, dtype=tf.int64)
+            initial_value=-1, trainable=False, dtype=tf.int64)
         checkpoint_path = checkDir + '/ckpt-' + str(ep)
         tl.Checkpoint(dict(G_A2B=model.G_A2B, G_B2A=model.G_B2A, D_A=model.D_A,
                            D_B=model.D_B, ep_cnt=ep_cnt_recover), checkDir).restore(checkpoint_path)
@@ -227,8 +227,10 @@ for ep in range(start, ep_step):
         # Using evaluation function to get the plot instead
         A, B = next(test_iter)
         A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
-        ev.plot_images_A2B_B2A(A[0], A2B[0], B[0], B2A[0], sample_dir, ep)
+        ev.plot_images_A2B_B2A(
+            A[0], A2B[0], B[0], B2A[0], sample_dir, ep_cnt_recover.numpy())
 
         A, B = next(valid_iter)
         A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
-        ev.plot_images_A2B_B2A(A[0], A2B[0], B[0], B2A[0], valid_dir, ep)
+        ev.plot_images_A2B_B2A(
+            A[0], A2B[0], B[0], B2A[0], valid_dir, ep_cnt_recover.numpy())
