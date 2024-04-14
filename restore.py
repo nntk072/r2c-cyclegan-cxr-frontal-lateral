@@ -281,9 +281,9 @@ with train_summary_writer.as_default():
             # Compute the SSIM and the PSNR of the validation results
             A2B, B2A, _, _ = model.sample(A, B)
             psnr_A2B, ssim_A2B = ev.compute_psnr_ssim(
-                A[0].numpy(), A2B[0].numpy())
+                B[0].numpy(), A2B[0].numpy())
             psnr_B2A, ssim_B2A = ev.compute_psnr_ssim(
-                B[0].numpy(), B2A[0].numpy())
+                A[0].numpy(), B2A[0].numpy())
             ssim_A2B_value_valid.append(ssim_A2B)
             psnr_A2B_value_valid.append(psnr_A2B)
             ssim_B2A_value_valid.append(ssim_B2A)
