@@ -282,7 +282,7 @@ with train_summary_writer.as_default():
                 # im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' %
                 #                         model.G_optimizer.iterations.numpy()))
                 ev.plot_images_A2B_B2A(
-                    A[0], A2B[0], B[0], B2A[0], valid_dir, ep_cnt_recover.numpy())
+                    A[0], A2B[0], B[0], B2A[0], valid_dir, ep_cnt.numpy())
 
         save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss,
                        B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, "training", args.method)
