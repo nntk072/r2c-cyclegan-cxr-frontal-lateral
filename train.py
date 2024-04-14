@@ -275,7 +275,11 @@ with train_summary_writer.as_default():
                        step=model.G_optimizer.iterations, name='D_losses_valid')
 
             if ep % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
-                A, B = next(valid_iter)
+                try:
+                    A, B = next(valid_iter)
+                except StopIteration:
+                    valid_iter = iter(A_B_dataset_valid)
+                    A, B = next(valid_iter)
                 A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
                 # img = im.immerge(np.concatenate(
                 #     [A, A2B, B, B2A], axis=0), n_rows=2)
