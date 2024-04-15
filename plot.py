@@ -16,7 +16,6 @@ import pylib as py
 
 
 def main():
-    # method = "unet"
     # Make an input
     method = input('Enter the method: ')
     A2B_g_loss_list = np.array([])
@@ -32,7 +31,9 @@ def main():
     ssim_B2A_list = np.array([])
     psnr_B2A_list = np.array([])
     ep_list = np.array([])
-    for ep in range(0, 1000):
+    epoch = int(input('Enter the number of epochs: '))
+
+    for ep in range(0, epoch):
         A2B_g_loss = np.load(
             f'output/{method}/plot_data/training/loss_A2B_g_loss_{ep}.npy')
         B2A_g_loss = np.load(
@@ -91,7 +92,7 @@ def main():
     psnr_A2B_list_valid = np.array([])
     psnr_B2A_list_valid = np.array([])
     ep_list_valid = np.array([])
-    for ep in range(0, 1000):  # the name of the folder is validation
+    for ep in range(0, epoch):  # the name of the folder is validation
         A2B_g_loss = np.load(
             f'output/{method}/plot_data/validation/loss_A2B_g_loss_{ep}.npy')
         B2A_g_loss = np.load(
@@ -178,7 +179,8 @@ def main():
                  max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)))
         plt.yticks(np.arange(0, max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(
             A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)), 0.05))
-    plt.savefig(f'output/{method}/generator_losses.png')  # Save as high-res image
+    # Save as high-res image
+    plt.savefig(f'output/{method}/generator_losses.png')
     plt.close()
 
     # Cycle Losses Plot
@@ -262,7 +264,8 @@ def main():
                  max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)))
         plt.yticks(np.arange(0, max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(
             A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)), 0.05))
-    plt.savefig(f'output/{method}/identity_losses.png')  # Save as high-res image
+    # Save as high-res image
+    plt.savefig(f'output/{method}/identity_losses.png')
     plt.close()
 
     # Discriminator Losses Plot
@@ -313,9 +316,9 @@ def main():
     plt.plot(ep_list, psnr_B2A_list, label='psnr_B2A',
              linewidth=1)
     plt.plot(ep_list_valid, psnr_A2B_list_valid,
-                label='psnr_A2B_valid', linewidth=1)
+             label='psnr_A2B_valid', linewidth=1)
     plt.plot(ep_list_valid, psnr_B2A_list_valid,
-                label='psnr_B2A_valid', linewidth=1)
+             label='psnr_B2A_valid', linewidth=1)
     plt.legend(fontsize='large')
     plt.title('PSNR', fontsize='x-large')
     plt.xlabel('Epochs', fontsize='large')
@@ -342,11 +345,11 @@ def main():
     plt.figure(figsize=(20, 12))  # Increase figure size
     plt.plot(ep_list, ssim_A2B_list, label='ssim_A2B', linewidth=1)
     plt.plot(ep_list, ssim_B2A_list, label='ssim_B2A',
-                linewidth=1)
+             linewidth=1)
     plt.plot(ep_list_valid, ssim_A2B_list_valid,
-                label='ssim_A2B_valid', linewidth=1)
+             label='ssim_A2B_valid', linewidth=1)
     plt.plot(ep_list_valid, ssim_B2A_list_valid,
-                label='ssim_B2A_valid', linewidth=1)
+             label='ssim_B2A_valid', linewidth=1)
     plt.legend(fontsize='large')
     plt.title('SSIM', fontsize='x-large')
     plt.xlabel('Epochs', fontsize='large')
@@ -359,7 +362,7 @@ def main():
     # plt.ylim(-1, 1)
     # plt.yticks(np.arange(-1, 1, 0.1))
     plt.savefig(f'output/{method}/ssim.png')  # Save as high-res image
-        
+
     # # Asking for the starting and ending epoch and concatenating the data for the plot
     # # Start epoch
     # start_epoch = int(input('Enter the starting epoch: '))
