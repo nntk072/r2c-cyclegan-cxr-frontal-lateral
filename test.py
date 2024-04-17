@@ -21,8 +21,8 @@ py.arg('--batch_size', type=int, default=32)
 py.arg('--method', help='convolutional, operational, unet, anotherunet, operational_unet',
        default='convolutional')
 py.arg('--loss_method', help='none, adversarial, total, cycle, generator, discriminator, identity, all',
-       default='adversarial')
-py.arg('--evaluation_method', help='none, psnr, ssim, both', default='none')
+       default='all')
+py.arg('--evaluation_method', help='none, psnr, ssim, both', default='both')
 test_args = py.args()
 args = py.args_from_yaml(
     py.join(test_args.experiment_dir, test_args.method, 'settings.yml'))
@@ -65,9 +65,9 @@ elif args.method == 'anotherunet':
     G_B2A = module.AnotherUnetGenerator(
         input_shape=(args.crop_size, args.crop_size, 3))
 elif args.method == 'operational_unet':
-    G_A2B = module.OpUnetGenerator(
+    G_A2B = module.OpUNetGenerator(
         input_shape=(args.crop_size, args.crop_size, 3), q=args.q)
-    G_B2A = module.OpUnetGenerator(
+    G_B2A = module.OpUNetGenerator(
         input_shape=(args.crop_size, args.crop_size, 3), q=args.q)
 else:
     raise NotImplementedError
@@ -84,7 +84,7 @@ psnr_A2B_list = np.array([])
 ssim_B2A_list = np.array([])
 psnr_B2A_list = np.array([])
 ep_list = np.array([])
-for ep in range(0, 1000):
+for ep in range(0, 850):
     A2B_g_loss = np.load(
         f'output/{method}/plot_data/training/loss_A2B_g_loss_{ep}.npy')
     B2A_g_loss = np.load(
@@ -145,7 +145,7 @@ ssim_B2A_list_valid = np.array([])
 psnr_B2A_list_valid = np.array([])
 
 ep_list_valid = np.array([])
-for ep in range(0, 1000):  # the name of the folder is validation
+for ep in range(0, 850):  # the name of the folder is validation
     A2B_g_loss = np.load(
         f'output/{method}/plot_data/validation/loss_A2B_g_loss_{ep}.npy')
     B2A_g_loss = np.load(
@@ -438,9 +438,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         A2B, A2B2A = sample_A2B(A)
         for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
-            # psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
-            #                                 save_dir, A_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
@@ -463,9 +463,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         A2B, A2B2A = sample_A2B(A)
         for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
-            # psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
-            #                                 save_dir, A_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
 
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
@@ -489,9 +489,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         A2B, A2B2A = sample_A2B(A)
         for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
-            # psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
-            #                                 save_dir, A_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
@@ -515,9 +515,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         A2B, A2B2A = sample_A2B(A)
         for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
-            # psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
-            #                                 save_dir, A_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
@@ -540,9 +540,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         A2B, A2B2A = sample_A2B(A)
         for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
-            # psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
-            #                                 save_dir, A_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
@@ -565,9 +565,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         A2B, A2B2A = sample_A2B(A)
         for A_i, A2B_i, A2B2A_i, B_i in zip(A, A2B, A2B2A, B):
-            # psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
-            #                                 save_dir, A_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+            psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                            save_dir, A_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,

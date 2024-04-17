@@ -125,7 +125,8 @@ def plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list, ssim_list, save_dir, img_
     for i in range(A2B_list_length):
         plt.subplot(1, total_plot, i+2)
         plt.imshow(im.dtype.im2uint(A2B_list[i].numpy()))
-        title_text = f'PSNR: {psnr_list[i]:.4f}\nSSIM: {ssim_list[i]:.4f}\nMethod: {method_list[i]}'
+        # title_text = f'PSNR: {psnr_list[i]:.4f}\nSSIM: {ssim_list[i]:.4f}\nMethod: {method_list[i]}'
+        title_text = f'PSNR: {psnr_list[i]:.4f}\nSSIM: {ssim_list[i]:.4f}'
         plt.title(title_text)  # Adjusted title text
         plt.axis('off')
 
@@ -154,7 +155,9 @@ def plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list, ssim_list, save_dir, img_
     for i in range(B2A_list_length):
         plt.subplot(1, total_plot, i+2)
         plt.imshow(im.dtype.im2uint(B2A_list[i].numpy()))
-        title_text = f'PSNR: {psnr_list[i]:.4f}\nSSIM: {ssim_list[i]:.4f}\nMethod: {method_list[i]}'
+        # title_text = f'PSNR: {psnr_list[i]:.4f}\nSSIM: {ssim_list[i]:.4f}\nMethod: {method_list[i]}'
+        # Do not need method
+        title_text = f'PSNR: {psnr_list[i]:.4f}\nSSIM: {ssim_list[i]:.4f}'
         plt.title(title_text)  # Adjusted title text
         plt.axis('off')
     plt.subplot(1, total_plot, total_plot)
@@ -168,6 +171,8 @@ def plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list, ssim_list, save_dir, img_
     plt.close()
 
 # Same idea of plot_images_A2B and B2A, but combine them in one function
+
+
 def plot_images_A2B_B2A(A_i, A2B_i, B_i, B2A_i, save_dir, epoch):
     psnr_A2B, ssim_A2B = compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
     psnr_B2A, ssim_B2A = compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
@@ -192,5 +197,3 @@ def plot_images_A2B_B2A(A_i, A2B_i, B_i, B2A_i, save_dir, epoch):
     # save the image with the epoch number only
     plt.savefig(os.path.join(save_dir, f'EPOCH - {epoch}.png'))
     plt.close()
-    
-    
