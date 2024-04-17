@@ -212,16 +212,15 @@ checkDir = checkpoint.directory
 i_train = start*len_dataset
 # ep_step = 900
 ep_step = int(input("Enter the last epoch number (reversed): "))
+ep_cnt_recover = tf.Variable(
+    initial_value=start-1, trainable=False, dtype=tf.int64)
 # for ep in range(0, ep_step + 1):
 with train_summary_writer.as_default():
     for ep in range(start, ep_step, -1):
         # Load model
-        ep_cnt_recover = tf.Variable(
-            initial_value=start-1, trainable=False, dtype=tf.int64)
         checkpoint_path = checkDir + '/ckpt-' + str(ep)
         tl.Checkpoint(dict(G_A2B=model.G_A2B, G_B2A=model.G_B2A, D_A=model.D_A,
                            D_B=model.D_B, ep_cnt=ep_cnt_recover), checkDir).restore(checkpoint_path)
-
         print('Restored epoch: ', ep_cnt_recover.numpy())
 
         # Train restoration step (Save the loss values for each iteration, and save the plot after 5 iterations

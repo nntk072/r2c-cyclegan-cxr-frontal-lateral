@@ -124,6 +124,8 @@ B_img_paths_valid = py.glob(
 A_B_dataset_valid, valid_len_dataset = data.make_zip_dataset(
     A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False)
 
+A_B_dataset_valid_test, valid_len_dataset_test = data.make_zip_dataset(
+    A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False)
 # ==============================================================================
 # =                                   models                                   =
 # ==============================================================================
@@ -184,14 +186,16 @@ train_summary_writer = tf.summary.create_file_writer(
     py.join(output_dir, args.method, 'summaries', 'train'))
 
 # sample
-test_iter = iter(A_B_dataset_test)
-sample_dir = py.join(output_dir, args.method, 'samples_training')
+train_test_iter = iter(A_B_dataset_test)
+sample_dir = py.join(output_dir, args.method, 'samples_training_epoch')
 py.mkdir(sample_dir)
 
 # valid
 valid_iter = iter(A_B_dataset_valid)
-valid_dir = py.join(output_dir, args.method, 'samples_valid')
+valid_iter_test = iter(A_B_dataset_valid_test)
+valid_dir = py.join(output_dir, args.method, 'samples_valid_epoch')
 py.mkdir(valid_dir)
+
 
 # main loop
 with train_summary_writer.as_default():
@@ -211,7 +215,6 @@ with train_summary_writer.as_default():
 
         # train for an epoch
         for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
-            # for A, B in tqdm.tqdm(A_B_dataset.take(10), desc='Inner Epoch Loop', total=len_dataset):
 
             G_loss_dict, D_loss_dict = train_step(A, B)
 
@@ -236,16 +239,16 @@ with train_summary_writer.as_default():
             B_d_loss.append(D_loss_dict['B_d_loss'].numpy())
 
             iterations.append(model.G_optimizer.iterations.numpy())
-            if ep % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:
-                # if ep != 0 and model.G_optimizer.iterations.numpy() % 10 == 0:  # 1/5 epoch
-                A, B = next(test_iter)
-                A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
-                # img = im.immerge(np.concatenate(
-                #     [A, A2B, B, B2A], axis=0), n_rows=2)
-                # im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' %
-                #                         model.G_optimizer.iterations.numpy()))
-                ev.plot_images_A2B_B2A(
-                    A[0], A2B[0], B[0], B2A[0], sample_dir, ep-1)
+            # if (ep-1) % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:
+            #     # if ep != 0 and model.G_optimizer.iterations.numpy() % 10 == 0:  # 1/5 epoch
+            #     A, B = next(train_test_iter)
+            #     A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
+            #     # img = im.immerge(np.concatenate(
+            #     #     [A, A2B, B, B2A], axis=0), n_rows=2)
+            #     # im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' %
+            #     #                         model.G_optimizer.iterations.numpy()))
+            #     ev.plot_images_A2B_B2A(
+            #         A[0], A2B[0], B[0], B2A[0], sample_dir, ep-1)
 
         # Valid step (Save the loss values for each iteration, and save the plot after 5 iterations
         iterations_valid, A2B_g_loss_valid, B2A_g_loss_valid, A2B2A_cycle_loss_valid, B2A2B_cycle_loss_valid, A2A_id_loss_valid, B2B_id_loss_valid, A_d_loss_valid, B_d_loss_valid = [], [], [], [], [], [], [], [], []
@@ -274,19 +277,15 @@ with train_summary_writer.as_default():
             tl.summary(valid_D_results,
                        step=model.G_optimizer.iterations, name='D_losses_valid')
 
-            if ep % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
-                try:
-                    A, B = next(valid_iter)
-                except StopIteration:
-                    valid_iter = iter(A_B_dataset_valid)
-                    A, B = next(valid_iter)
-                A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
-                # img = im.immerge(np.concatenate(
-                #     [A, A2B, B, B2A], axis=0), n_rows=2)
-                # im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' %
-                #                         model.G_optimizer.iterations.numpy()))
-                ev.plot_images_A2B_B2A(
-                    A[0], A2B[0], B[0], B2A[0], valid_dir, ep_cnt.numpy())
+            # if ep-1 % 5 == 0 and model.G_optimizer.iterations.numpy() % 2000 == 0:  # 1/5 epoch
+            #     A, B = next(valid_iter_test)
+            #     A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
+            #     # img = im.immerge(np.concatenate(
+            #     #     [A, A2B, B, B2A], axis=0), n_rows=2)
+            #     # im.imwrite(img, py.join(valid_dir, 'iter-%09d.jpg' %
+            #     #                         model.G_optimizer.iterations.numpy()))
+            #     ev.plot_images_A2B_B2A(
+            #         A[0], A2B[0], B[0], B2A[0], valid_dir, ep_cnt.numpy())
 
         save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss,
                        B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, "training", args.method)

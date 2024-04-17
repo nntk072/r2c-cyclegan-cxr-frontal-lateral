@@ -201,16 +201,15 @@ start = 0  # start epoch number
 checkDir = checkpoint.directory
 
 ep_step = 1000
-# for ep in range(0, ep_step + 1):
+ep_cnt_recover = tf.Variable(
+        initial_value=0, trainable=False, dtype=tf.int64)
 for ep in range(start, ep_step):
-    if ep % 5 == 0:
-        # Load model
-        ep_cnt_recover = tf.Variable(
-            initial_value=-1, trainable=False, dtype=tf.int64)
+    # print(ep_cnt_recover.numpy())
+    if (ep_cnt_recover.numpy()) % 5 == 0:
         checkpoint_path = checkDir + '/ckpt-' + str(ep)
         tl.Checkpoint(dict(G_A2B=model.G_A2B, G_B2A=model.G_B2A, D_A=model.D_A,
                            D_B=model.D_B, ep_cnt=ep_cnt_recover), checkDir).restore(checkpoint_path)
-
+        print(checkpoint_path)
         print('Restored epoch: ', ep_cnt_recover.numpy())
         # A, B = next(test_iter)
         # A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
@@ -234,3 +233,4 @@ for ep in range(start, ep_step):
         A2B, B2A, A2B2A, B2A2B = model.sample(A, B)
         ev.plot_images_A2B_B2A(
             A[0], A2B[0], B[0], B2A[0], valid_dir, ep_cnt_recover.numpy())
+    ep_cnt_recover.assign_add(1)
