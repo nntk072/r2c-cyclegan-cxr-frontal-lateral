@@ -197,13 +197,13 @@ valid_dir = py.join(output_dir, args.method, 'samples_valid')
 py.mkdir(valid_dir)
 
 start = 0  # start epoch number
-# for i in range(0, 1000):
-#     try:
-#         ssim_value_list = np.load(
-#             py.join(plot_dir, 'training', 'ssim_A2B_value_list_' + str(i) + '.npy'))
-#         start = i
-#     except:
-#         break
+for i in range(0, 1000):
+    try:
+        ssim_value_list = np.load(
+            py.join(plot_dir, 'training', 'ssim_A2B_value_list_' + str(i) + '.npy'))
+        start = i
+    except:
+        break
 
 # Restore the checkpoint from 1 to the last epoch, save the validation plot data
 checkDir = checkpoint.directory

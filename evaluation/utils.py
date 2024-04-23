@@ -39,27 +39,26 @@ def compute_psnr_ssim(img1, img2):
 
 def plot_images_A2B(A_i, A2B_i, B_i, save_dir, img_path, best_psnr=False, best_ssim=False):
     psnr, ssim = compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(10, 4))
     plt.subplot(131)
     plt.imshow(im.dtype.im2uint(A_i.numpy()))
     plt.title('A')
     plt.axis('off')
     plt.subplot(132)
     plt.imshow(im.dtype.im2uint(A2B_i.numpy()))
-    plt.title('A2B')
+    plt.title(f'A2B\nPSNR: {psnr:.4f}, SSIM: {ssim:.4f}')
     plt.axis('off')
     plt.subplot(133)
     plt.imshow(im.dtype.im2uint(B_i.numpy()))
     plt.title('B')
     plt.axis('off')
-    plt.suptitle(f'PSNR: {psnr:.5f}, SSIM: {ssim:.5f}')
     # Get the image name and extension
     img_name = os.path.basename(img_path)
 
     # Join the save directory and the image name
     if best_psnr and best_ssim:
         save_path = os.path.join(save_dir, f'best_psnr_ssim')
-        plt.savefig(save_path)
+        plt.savefig(save_path, bbox_inches='tight')
         plt.close()
         return psnr, ssim
 
@@ -69,34 +68,36 @@ def plot_images_A2B(A_i, A2B_i, B_i, save_dir, img_path, best_psnr=False, best_s
         save_path = os.path.join(save_dir, f'best_ssim')
     else:
         save_path = os.path.join(save_dir, img_name)
-    plt.savefig(save_path)
+    plt.tight_layout()
+    plt.savefig(save_path, bbox_inches='tight')
     plt.close()
     return psnr, ssim
 
 
 def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path, best_psnr=False, best_ssim=False):
     psnr, ssim = compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(10, 4))
     plt.subplot(131)
     plt.imshow(im.dtype.im2uint(B_i.numpy()))
     plt.title('B')
     plt.axis('off')
     plt.subplot(132)
     plt.imshow(im.dtype.im2uint(B2A_i.numpy()))
-    plt.title('B2A')
+    # Change this into B2A, psnr, ssim
+    # plt.title('B2A')
+    plt.title(f'B2A\nPSNR: {psnr:.4f}, SSIM: {ssim:.4f}')
     plt.axis('off')
     plt.subplot(133)
     plt.imshow(im.dtype.im2uint(A_i.numpy()))
     plt.title('A')
     plt.axis('off')
-    plt.suptitle(f'PSNR: {psnr:.4f}, SSIM: {ssim:.4f}')
     # Get the image name and extension
     img_name = os.path.basename(img_path)
     # Join the save directory and the image name
     # save_path = os.path.join(save_dir, img_name)
     if best_psnr and best_ssim:
         save_path = os.path.join(save_dir, f'best_psnr_ssim')
-        plt.savefig(save_path)
+        plt.savefig(save_path, bbox_inches='tight')
         plt.close()
         return psnr, ssim
 
@@ -107,7 +108,8 @@ def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path, best_psnr=False, best_s
     else:
         save_path = os.path.join(save_dir, img_name)
 
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight')
+    plt.tight_layout()
     plt.close()
     return psnr, ssim
 
@@ -140,7 +142,7 @@ def plot_all_images_A2B(A_i, A2B_list, B_i, psnr_list, ssim_list, save_dir, img_
 
     # Use tight_layout before saving figure to avoid overlap
     plt.tight_layout()
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight')
     plt.close()
 
 
@@ -167,7 +169,7 @@ def plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list, ssim_list, save_dir, img_
     img_name = os.path.basename(img_path)
     save_path = os.path.join(save_dir, img_name)
     plt.tight_layout()
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight')
     plt.close()
 
 # Same idea of plot_images_A2B and B2A, but combine them in one function
@@ -195,5 +197,5 @@ def plot_images_A2B_B2A(A_i, A2B_i, B_i, B2A_i, save_dir, epoch):
     plt.axis('off')
     plt.tight_layout()
     # save the image with the epoch number only
-    plt.savefig(os.path.join(save_dir, f'EPOCH - {epoch}.png'))
+    plt.savefig(os.path.join(save_dir, f'EPOCH - {epoch}.png'), bbox_inches='tight')
     plt.close()
