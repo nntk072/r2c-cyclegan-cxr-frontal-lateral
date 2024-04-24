@@ -107,9 +107,9 @@ def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path, best_psnr=False, best_s
         save_path = os.path.join(save_dir, f'best_ssim')
     else:
         save_path = os.path.join(save_dir, img_name)
+    plt.tight_layout()
 
     plt.savefig(save_path, bbox_inches='tight')
-    plt.tight_layout()
     plt.close()
     return psnr, ssim
 

@@ -209,85 +209,102 @@ A2B_total_loss_valid = np.add(A2B_adversarial_loss_valid,
                               np.multiply(A2B2A_cycle_loss_list_valid, args.cycle_loss_weight))
 B2A_total_loss_valid = np.add(B2A_adversarial_loss_valid,
                               np.multiply(B2A2B_cycle_loss_list_valid, args.cycle_loss_weight))
+total_loss = np.add(A2B_total_loss, B2A_total_loss)
+total_loss_valid = np.add(A2B_total_loss_valid, B2A_total_loss_valid)
 
 # Plot the Adversarial and Total loss in one plot with the same format as
 plt.figure(figsize=(20, 12))  # Increase figure size
 plt.plot(ep_list, A2B_adversarial_loss,
-         label='A2B_adversarial_loss', linewidth=1)
+         label='A2B_adversarial_loss_training', linewidth=1)
 plt.plot(ep_list, B2A_adversarial_loss,
-         label='B2A_adversarial_loss', linewidth=1)
+         label='B2A_adversarial_loss_training', linewidth=1)
 plt.plot(ep_list_valid, A2B_adversarial_loss_valid,
          label='A2B_adversarial_loss_valid', linewidth=1)
 plt.plot(ep_list_valid, B2A_adversarial_loss_valid,
          label='B2A_adversarial_loss_valid', linewidth=1)
+plt.plot(ep_list, total_loss, label='Total_loss_training', linewidth=1)
+plt.plot(ep_list_valid, total_loss_valid,
+            label='Total_loss_valid', linewidth=1)
 plt.legend(fontsize='large')
-plt.title('Adversarial Losses', fontsize='x-large')
 plt.xlabel('Epochs', fontsize='large')
 plt.ylabel('Loss', fontsize='large')
 plt.grid(which='major', color='black', linewidth=0.5)
 plt.xlim(ep_list[0], ep_list[-1])
 plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-if max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 0.25:
+# if max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 0.25:
+#     plt.ylim(0, 0.25)
+#     plt.yticks(np.arange(0, 0.25, 0.025))
+# elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 0.5:
+#     plt.ylim(0, 0.5)
+#     plt.yticks(np.arange(0, 0.5, 0.05))
+# elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 0.75:
+#     plt.ylim(0, 0.75)
+#     plt.yticks(np.arange(0, 0.75, 0.05))
+# elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 1:
+#     plt.ylim(0, 1)
+#     plt.yticks(np.arange(0, 1, 0.05))
+# elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) > 4:
+#     plt.ylim(0, 4)
+#     plt.yticks(np.arange(0, 4, 0.2))
+# else:
+#     plt.ylim(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss),
+#                     max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)))
+#     plt.yticks(np.arange(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(
+#         A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)), 0.1))
+# Adding the total loss to if function
+if max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) < 0.25:
     plt.ylim(0, 0.25)
     plt.yticks(np.arange(0, 0.25, 0.025))
-elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 0.5:
+elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) < 0.5:
     plt.ylim(0, 0.5)
     plt.yticks(np.arange(0, 0.5, 0.05))
-elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 0.75:
+elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) < 0.75:
     plt.ylim(0, 0.75)
     plt.yticks(np.arange(0, 0.75, 0.05))
-elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 1:
+elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) < 1:
     plt.ylim(0, 1)
     plt.yticks(np.arange(0, 1, 0.05))
-elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) > 4:
+elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) > 4:
     plt.ylim(0, 4)
     plt.yticks(np.arange(0, 4, 0.2))
 else:
-    plt.ylim(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss),
-                    max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)))
-    plt.yticks(np.arange(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(
-        A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)), 0.1))
+    plt.ylim(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)))
+    plt.yticks(np.arange(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)), 0.1))
 # Save as high-res image
-plt.savefig(f'output/{method}/adversarial_losses.png')
+plt.savefig(f'output/{method}/losses.png')
 plt.close()
 
-plt.figure(figsize=(20, 12))  # Increase figure size
-plt.plot(ep_list, A2B_total_loss, label='A2B_total_loss', linewidth=1)
-plt.plot(ep_list, B2A_total_loss, label='B2A_total_loss', linewidth=1)
-plt.plot(ep_list_valid, A2B_total_loss_valid,
-         label='A2B_total_loss_valid', linewidth=1)
-plt.plot(ep_list_valid, B2A_total_loss_valid,
-         label='B2A_total_loss_valid', linewidth=1)
-plt.legend(fontsize='large')
-plt.title('Total Losses', fontsize='x-large')
-plt.xlabel('Epochs', fontsize='large')
-plt.ylabel('Loss', fontsize='large')
-plt.grid(which='major', color='black', linewidth=0.5)
-plt.xlim(ep_list[0], ep_list[-1])
-plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-if max(max(A2B_total_loss), max(B2A_total_loss), max(A2B_total_loss_valid), max(B2A_total_loss_valid)) < 0.25:
-    plt.ylim(0, 0.25)
-    plt.yticks(np.arange(0, 0.25, 0.025))
-elif max(max(A2B_total_loss), max(B2A_total_loss), max(A2B_total_loss_valid), max(B2A_total_loss_valid)) < 0.5:
-    plt.ylim(0, 0.5)
-    plt.yticks(np.arange(0, 0.5, 0.05))
-elif max(max(A2B_total_loss), max(B2A_total_loss), max(A2B_total_loss_valid), max(B2A_total_loss_valid)) < 0.75:
-    plt.ylim(0, 0.75)
-    plt.yticks(np.arange(0, 0.75, 0.05))
-elif max(max(A2B_total_loss), max(B2A_total_loss), max(A2B_total_loss_valid), max(B2A_total_loss_valid)) < 1:
-    plt.ylim(0, 1)
-    plt.yticks(np.arange(0, 1, 0.05))
-# Limit into 4
-elif max(max(A2B_total_loss), max(B2A_total_loss), max(A2B_total_loss_valid), max(B2A_total_loss_valid)) > 4:
-    plt.ylim(0, 4)
-    plt.yticks(np.arange(0, 4, 0.2))
-else:
-    plt.ylim(0, max(max(A2B_total_loss), max(B2A_total_loss),
-                    max(A2B_total_loss_valid), max(B2A_total_loss_valid)))
-    plt.yticks(np.arange(0, max(max(A2B_total_loss), max(B2A_total_loss), max(
-        A2B_total_loss_valid), max(B2A_total_loss_valid)), 0.2))
-plt.savefig(f'output/{method}/total_losses.png')  # Save as high-res image
-plt.close()
+# plt.figure(figsize=(20, 12))  # Increase figure size
+# plt.plot(ep_list, total_loss, label='Total_loss_training', linewidth=1)
+# plt.plot(ep_list_valid, total_loss_valid,
+#             label='Total_loss_valid', linewidth=1)
+# plt.legend(fontsize='large')
+# plt.title('Total Losses', fontsize='x-large')
+# plt.xlabel('Epochs', fontsize='large')
+# plt.ylabel('Loss', fontsize='large')
+# plt.grid(which='major', color='black', linewidth=0.5)
+# plt.xlim(ep_list[0], ep_list[-1])
+# plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
+# if max(max(total_loss), max(total_loss_valid)) < 0.25:
+#     plt.ylim(0, 0.25)
+#     plt.yticks(np.arange(0, 0.25, 0.025))
+# elif max(max(total_loss), max(total_loss_valid)) < 0.5:    
+#     plt.ylim(0, 0.5)
+#     plt.yticks(np.arange(0, 0.5, 0.05))
+# elif max(max(total_loss), max(total_loss_valid)) < 0.75:
+#     plt.ylim(0, 0.75)
+#     plt.yticks(np.arange(0, 0.75, 0.05))
+# elif max(max(total_loss), max(total_loss_valid)) < 1:
+#     plt.ylim(0, 1)
+#     plt.yticks(np.arange(0, 1, 0.05))
+# elif max(max(total_loss), max(total_loss_valid)) > 4:
+#     plt.ylim(0, 4)
+#     plt.yticks(np.arange(0, 4, 0.2))
+# else:
+#     plt.ylim(0, max(max(total_loss), max(total_loss_valid)))
+#     plt.yticks(np.arange(0, max(max(total_loss), max(total_loss_valid)), 0.2))
+# plt.savefig(f'output/{method}/total_losses.png')  # Save as high-res image
+# plt.close()
 
 # Choosing the epoch with the lowest adversarial loss valid to plot the result
 lowest_A2B_adversarial_loss_valid = np.min(A2B_adversarial_loss_valid)
@@ -304,7 +321,11 @@ lowest_A2B_total_loss_valid_index = np.where(
     A2B_total_loss_valid == lowest_A2B_total_loss_valid)
 lowest_B2A_total_loss_valid_index = np.where(
     B2A_total_loss_valid == lowest_B2A_total_loss_valid)
+lowest_total_loss_valid = np.min(total_loss_valid)
+lowest_total_loss_valid_index = np.where(
+    total_loss_valid == lowest_total_loss_valid)
 
+    
 # Choosing the epoch with the lowest cycle loss valid to plot the result
 lowest_A2B_cycle_loss_valid = np.min(A2B2A_cycle_loss_list_valid)
 lowest_B2A_cycle_loss_valid = np.min(B2A2B_cycle_loss_list_valid)
@@ -375,9 +396,8 @@ print(
     f'Lowest A2B adversarial loss valid: {lowest_A2B_adversarial_loss_valid}')
 print(
     f'Lowest A2B adversarial loss valid index: {lowest_A2B_adversarial_loss_valid_index[0][0]}')
-print(f'Lowest A2B total loss valid: {lowest_A2B_total_loss_valid}')
-print(
-    f'Lowest A2B total loss valid index: {lowest_A2B_total_loss_valid_index[0][0]}')
+print(f'Lowest total loss valid: {lowest_total_loss_valid}')
+print(f'Lowest total loss valid index: {lowest_total_loss_valid_index[0][0]}')
 print(f'Lowest A2B cycle loss valid: {lowest_A2B_cycle_loss_valid}')
 print(
     f'Lowest A2B cycle loss valid index: {lowest_A2B_cycle_loss_valid_index[0][0]}')
@@ -399,6 +419,7 @@ print(f'Highest PSNR A2B index: {highest_psnr_A2B_index[0][0]}')
 #     args.experiment_dir, args.method, 'checkpoints')).restore()
 # Restore the lowest_A2B_adversarial_loss_valid_index
 checkDir = 'output/' + method + '/checkpoints'
+
 # use loss method to decide whether to use adversarial or total loss to restore
 if test_args.loss_method == 'adversarial':
     tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
@@ -617,9 +638,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         B2A, B2A2B = sample_B2A(B)
         for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
-            # psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
-            #                                 save_dir, B_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
@@ -642,9 +663,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         B2A, B2A2B = sample_B2A(B)
         for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
-            # psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
-            #                                 save_dir, B_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
@@ -667,9 +688,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         B2A, B2A2B = sample_B2A(B)
         for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
-            # psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
-            #                                 save_dir, B_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
@@ -692,9 +713,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         B2A, B2A2B = sample_B2A(B)
         for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
-            # psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
-            #                                 save_dir, B_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
@@ -717,9 +738,9 @@ elif test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         B2A, B2A2B = sample_B2A(B)
         for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
-            # psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
-            #                                 save_dir, B_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
@@ -753,9 +774,9 @@ for A, B in zip(A_dataset_test, B_dataset_test):
         # img = np.concatenate([A_i.numpy(), A2B_i.numpy(), B_i.numpy()], axis=1)
         # im.imwrite(img, py.join(save_dir, py.name_ext(A_img_paths_test[i])))
 
-        # psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
-        #                                 save_dir, A_img_paths_test[i])
-        psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+        psnr, ssim = ev.plot_images_A2B(A_i, A2B_i, B_i,
+                                        save_dir, A_img_paths_test[i])
+        # psnr, ssim = ev.compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
         if best_psnr is None or psnr > best_psnr:
             best_psnr = psnr
             _, _ = ev.plot_images_A2B(A_i, A2B_i, B_i,
@@ -800,14 +821,15 @@ save_dir = py.join(args.experiment_dir, args.method,
                    f'samples_testing_{test_args.loss_method}', 'B2A')
 py.mkdir(save_dir)
 i = 0
+best_psnr = None
+best_ssim = None
 # Print the best epoch for checking
 print(
     f'Lowest B2A adversarial loss valid: {lowest_B2A_adversarial_loss_valid}')
 print(
     f'Lowest B2A adversarial loss valid index: {lowest_B2A_adversarial_loss_valid_index[0][0]}')
-print(f'Lowest B2A total loss valid: {lowest_B2A_total_loss_valid}')
-print(
-    f'Lowest B2A total loss valid index: {lowest_B2A_total_loss_valid_index[0][0]}')
+print(f'Lowest total loss valid: {lowest_total_loss_valid}')
+print(f'Lowest total loss valid index: {lowest_total_loss_valid_index[0][0]}')
 for A, B in zip(A_dataset_test, B_dataset_test):
     B2A, B2A2B = sample_B2A(B)
     for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
@@ -815,9 +837,9 @@ for A, B in zip(A_dataset_test, B_dataset_test):
         # im.imwrite(img, py.join(save_dir, py.name_ext(B_img_paths_test[i])))
         # img = np.concatenate([B_i.numpy(), B2A_i.numpy(), A_i.numpy()], axis=1)
         # im.imwrite(img, py.join(save_dir, py.name_ext(B_img_paths_test[i])))
-        # psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
-        #                                 save_dir, B_img_paths_test[i])
-        psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+        psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                        save_dir, B_img_paths_test[i])
+        # psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
         if best_psnr is None or psnr > best_psnr:
             best_psnr = psnr
             _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
@@ -829,10 +851,10 @@ for A, B in zip(A_dataset_test, B_dataset_test):
 
         i += 1
 
-
 # Do the same thing with psnr and ssim method
 best_psnr = None
 best_ssim = None
+
 if test_args.evaluation_method == 'none':
     # Exit the program
     sys.exit()
