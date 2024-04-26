@@ -84,7 +84,7 @@ psnr_A2B_list = np.array([])
 ssim_B2A_list = np.array([])
 psnr_B2A_list = np.array([])
 ep_list = np.array([])
-for ep in range(0, 850):
+for ep in range(0, 1000):
     A2B_g_loss = np.load(
         f'output/{method}/plot_data/training/loss_A2B_g_loss_{ep}.npy')
     B2A_g_loss = np.load(
