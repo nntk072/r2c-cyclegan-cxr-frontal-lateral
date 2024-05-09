@@ -105,13 +105,13 @@ def downsample(filters, size, norm_type='batch_norm', apply_norm=True):
     Returns:
       Downsample Sequential Model
     """
-    initializer = tf.random_normal_initializer(0., 0.02)
+    # initializer = tf.random_normal_initializer(0., 0.02)
 
     result = tf.keras.Sequential()
     result.add(
         tf.keras.layers.Conv2D(filters, size, strides=2, padding='same',
-                               kernel_initializer=initializer, use_bias=False))
-
+                               # kernel_initializer=initializer,
+                               use_bias=False))
     if apply_norm:
         if norm_type.lower() == 'batch_norm':
             result.add(tf.keras.layers.batch_normalization())
@@ -138,13 +138,13 @@ def upsample(filters, size, norm_type='instance_norm', apply_dropout=False):
       Upsample Sequential Model
     """
 
-    initializer = tf.random_normal_initializer(0., 0.02)
+    # initializer = tf.random_normal_initializer(0., 0.02)
 
     result = tf.keras.Sequential()
     result.add(
         tf.keras.layers.Conv2DTranspose(filters, size, strides=2,
                                         padding='same',
-                                        kernel_initializer=initializer,
+                                        # kernel_initializer=initializer,
                                         use_bias=False))
 
     if norm_type.lower() == 'batch_norm':
@@ -153,14 +153,12 @@ def upsample(filters, size, norm_type='instance_norm', apply_dropout=False):
         result.add(tfa.layers.InstanceNormalization())
 
     if apply_dropout:
-        result.add(tf.keras.layers.Dropout(0.5))
+        # result.add(tf.keras.layers.Dropout(0.5))
+        result.add(tf.keras.layers.Dropout(0.2))
 
     result.add(tf.keras.layers.ReLU())
 
     return result
-
-# Integrate Oper2D and upsample/downsample layers, change the last result to a tanh activation function.
-
 
 def integrate_oper_upsample(filters, size, norm_type='instance_norm', apply_dropout=False, q=1):
     """Upsamples an input.
@@ -176,12 +174,9 @@ def integrate_oper_upsample(filters, size, norm_type='instance_norm', apply_drop
     Returns:
       Upsample Sequential Model
     """
-
-    initializer = tf.random_normal_initializer(0., 0.02)
-
     result = tf.keras.Sequential()
     result.add(
-        Oper2DTranspose(filters, size, strides=2, q=q, padding='same', use_bias=False, apply_initializer=True))
+        Oper2DTranspose(filters, size, strides=2, q=q, padding='same', use_bias=False, apply_initializer=False))
 
     if norm_type.lower() == 'batch_norm':
         result.add(tf.keras.layers.batch_normalization())
@@ -189,7 +184,8 @@ def integrate_oper_upsample(filters, size, norm_type='instance_norm', apply_drop
         result.add(tfa.layers.InstanceNormalization())
 
     if apply_dropout:
-        result.add(tf.keras.layers.Dropout(0.5))
+        # result.add(tf.keras.layers.Dropout(0.5))
+        result.add(tf.keras.layers.Dropout(0.2))
 
     # result.add(tf.keras.layers.ReLU())
     # Using tanh instead
@@ -212,11 +208,9 @@ def integrate_oper_downsample(filters, size, norm_type='batch_norm', apply_norm=
     Returns:
       Downsample Sequential Model
     """
-    initializer = tf.random_normal_initializer(0., 0.02)
-
     result = tf.keras.Sequential()
     result.add(
-        Oper2D(filters, size, strides=2, q=q, padding='same', use_bias=False, apply_initializer=True))
+        Oper2D(filters, size, strides=2, q=q, padding='same', use_bias=False, apply_initializer=False))
 
     if apply_norm:
         if norm_type.lower() == 'batch_norm':
@@ -224,8 +218,6 @@ def integrate_oper_downsample(filters, size, norm_type='batch_norm', apply_norm=
         elif norm_type.lower() == 'instance_norm':
             result.add(tfa.layers.InstanceNormalization())
 
-    # result.add(tf.keras.layers.LeakyReLU())
-    # Using tanh instead
     result.add(tf.keras.layers.Activation('tanh'))
 
     return result

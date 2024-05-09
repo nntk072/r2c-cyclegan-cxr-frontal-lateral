@@ -293,11 +293,16 @@ def UNetGenerator(input_shape=(256, 256, 3),
         upsample(64, 4, norm),  # (bs, 128, 128, 128)
     ]
 
-    initializer = tf.random_normal_initializer(0., 0.02)
+    # initializer = tf.random_normal_initializer(0., 0.02)
+    # last = tf.keras.layers.Conv2DTranspose(
+    #     output_channels, 4, strides=2,
+    #     padding='same', kernel_initializer=initializer,
+    #     activation='tanh')  # (bs, 256, 256, 3)
+    # Do not use initializer for last layer.
     last = tf.keras.layers.Conv2DTranspose(
         output_channels, 4, strides=2,
-        padding='same', kernel_initializer=initializer,
-        activation='tanh')  # (bs, 256, 256, 3)
+        padding='same', activation='tanh')  # (bs, 256, 256, 3)
+    
 
     concat = tf.keras.layers.Concatenate()
 
@@ -335,7 +340,7 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
       Discriminator model
     """
     Norm = _get_norm_layer(norm)
-    initializer = tf.random_normal_initializer(0., 0.02)
+    # initializer = tf.random_normal_initializer(0., 0.02)
 
     inp = tf.keras.layers.Input(shape=[None, None, 3], name='input_image')
     x = inp
@@ -351,7 +356,8 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
     conv = tf.keras.layers.Conv2D(
-        512, 4, strides=1, kernel_initializer=initializer,
+        512, 4, strides=1, 
+        # kernel_initializer=initializer,
         use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
 
     norm1 = Norm()(conv)
@@ -360,8 +366,9 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
 
     last = tf.keras.layers.Conv2D(
-        1, 4, strides=1,
-        kernel_initializer=initializer)(zero_pad2)  # (bs, 30, 30, 1)
+        1, 4, strides=1
+        # , kernel_initializer=initializer
+        )(zero_pad2)  # (bs, 30, 30, 1)
 
     if target:
         return tf.keras.Model(inputs=[inp, tar], outputs=last)
@@ -633,11 +640,12 @@ def OpUNetGenerator(input_shape=(256, 256, 3),
         output_channels, 4, strides=2,
         padding='same', q=q,
         activation='tanh',
-        apply_initializer=True)  # (bs, 256, 256, 3)
-
+        # apply_initializer=True)  # (bs, 256, 256, 3)
+        apply_initializer=False)  # (bs, 256, 256, 3)
     concat = tf.keras.layers.Concatenate()
 
-    inputs = tf.keras.layers.Input(shape=[None, None, 3])
+    # inputs = tf.keras.layers.Input(shape=[None, None, 3])
+    inputs = tf.keras.layers.Input(shape=input_shape)
     x = inputs
 
     # Downsampling through the model
@@ -673,7 +681,8 @@ def OpUNetDiscriminator(input_shape=(256, 256, 3),
       Discriminator model
     """
     Norm = _get_norm_layer(norm)
-    inp = tf.keras.layers.Input(shape=[None, None, 3], name='input_image')
+    # inp = tf.keras.layers.Input(shape=[None, None, 3], name='input_image')
+    inp = tf.keras.layers.Input(shape=input_shape, name='input_image')
     x = inp
 
     if target:
@@ -690,7 +699,9 @@ def OpUNetDiscriminator(input_shape=(256, 256, 3),
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
     conv = Oper2D(
-        512, 4, strides=1, padding='valid', q=q, apply_initializer=True)(zero_pad1)  # (bs, 31, 31, 512)
+        512, 4, strides=1, padding='valid', q=q
+        # , apply_initializer=True
+        )(zero_pad1)  # (bs, 31, 31, 512)
 
     norm1 = Norm()(conv)
     leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
@@ -698,7 +709,9 @@ def OpUNetDiscriminator(input_shape=(256, 256, 3),
     zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
 
     last = Oper2D(
-        1, 4, strides=1, padding='valid', q=q, apply_initializer=True)(zero_pad2)  # (bs, 30, 30, 1)
+        1, 4, strides=1, padding='valid', q=q
+        # , apply_initializer=True
+        )(zero_pad2)  # (bs, 30, 30, 1)
 
     if target:
         return tf.keras.Model(inputs=[inp, tar], outputs=last)

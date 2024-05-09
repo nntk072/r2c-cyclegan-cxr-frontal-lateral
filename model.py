@@ -236,3 +236,11 @@ class model:
         A2B2A = self.G_B2A(A2B, training=False)
         B2A2B = self.G_A2B(B2A, training=False)
         return A2B, B2A, A2B2A, B2A2B
+
+    def summary(self):
+        
+        with open(f'output/{self.args.method}/modelsummary.txt', 'w') as f:
+            self.G_A2B.summary(print_fn=lambda x: f.write(x + '\n'))
+            self.G_B2A.summary(print_fn=lambda x: f.write(x + '\n'))
+            self.D_A.summary(print_fn=lambda x: f.write(x + '\n'))
+            self.D_B.summary(print_fn=lambda x: f.write(x + '\n'))        

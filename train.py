@@ -35,7 +35,7 @@ py.arg('--lr', type=float, default=0.0002)
 py.arg('--beta_1', type=float, default=0.5)
 py.arg('--adversarial_loss_mode', default='gan',
        choices=['gan', 'hinge_v1', 'hinge_v2', 'lsgan', 'wgan'])
-py.arg('--gradient_penalty_mode', default='none',
+py.arg('--gradient_penalty_mode', default='wgan-gp',
        choices=['none', 'dragan', 'wgan-gp'])
 py.arg('--gradient_penalty_weight', type=float, default=10.0)
 py.arg('--cycle_loss_weight', type=float, default=10.0)
@@ -132,7 +132,7 @@ A_B_dataset_valid_test, valid_len_dataset_test = data.make_zip_dataset(
 
 model = model.model(args)
 model.init(len_dataset)
-
+model.summary()
 tf.keras.utils.plot_model(model.G_A2B, to_file="G_A2B.png", show_shapes=True)
 tf.keras.utils.plot_model(model.G_B2A, to_file="G_B2A.png", show_shapes=True)
 tf.keras.utils.plot_model(model.D_A, to_file="D_A.png", show_shapes=True)
