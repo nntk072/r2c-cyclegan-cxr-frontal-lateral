@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 import tensorflow.keras as keras
 from layers import Oper2D, Oper2DTranspose
-from layers import downsample, upsample, integrate_oper_upsample, integrate_oper_downsample
+from layers import downsample, upsample, integrate_oper_upsample, integrate_oper_downsample, EncoderMiniBlock, DecoderMiniBlock
 
 # ==============================================================================
 # =                                  networks                                  =
@@ -302,11 +302,11 @@ def UNetGenerator(input_shape=(256, 256, 3),
     last = tf.keras.layers.Conv2DTranspose(
         output_channels, 4, strides=2,
         padding='same', activation='tanh')  # (bs, 256, 256, 3)
-    
 
     concat = tf.keras.layers.Concatenate()
 
-    inputs = tf.keras.layers.Input(shape=[None, None, 3])
+    # inputs = tf.keras.layers.Input(shape=[None, None, 3])
+    inputs = tf.keras.layers.Input(shape=input_shape)
     x = inputs
 
     # Downsampling through the model
@@ -342,11 +342,13 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
     Norm = _get_norm_layer(norm)
     # initializer = tf.random_normal_initializer(0., 0.02)
 
-    inp = tf.keras.layers.Input(shape=[None, None, 3], name='input_image')
+    # inp = tf.keras.layers.Input(shape=[None, None, 3], name='input_image')
+    inp = tf.keras.layers.Input(shape=input_shape, name='input_image')
     x = inp
 
     if target:
-        tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
+        # tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
+        tar = tf.keras.layers.Input(shape=input_shape, name='target_image')
         x = tf.keras.layers.concatenate(
             [inp, tar])  # (bs, 256, 256, channels*2)
 
@@ -356,7 +358,7 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
 
     zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
     conv = tf.keras.layers.Conv2D(
-        512, 4, strides=1, 
+        512, 4, strides=1,
         # kernel_initializer=initializer,
         use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
 
@@ -368,7 +370,7 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
     last = tf.keras.layers.Conv2D(
         1, 4, strides=1
         # , kernel_initializer=initializer
-        )(zero_pad2)  # (bs, 30, 30, 1)
+    )(zero_pad2)  # (bs, 30, 30, 1)
 
     if target:
         return tf.keras.Model(inputs=[inp, tar], outputs=last)
@@ -376,202 +378,50 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
         return tf.keras.Model(inputs=inp, outputs=last)
 
 
-def AnotherUNetGenerator(input_shape=(256, 256, 3),
-                         num_classes=3,
-                         filters=[64, 128, 256, 512],
-                         dropout_rate=0.5,
-                         activation='elu',
-                         padding='same',
-                         norm='instance_norm'
-                         ):
-    Norm = _get_norm_layer(norm)
-    s = tf.keras.Input(shape=input_shape)
-    c1 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (s)
-    c1 = Norm()(c1)
-    c1 = tf.nn.tanh(c1)
-    c1 = tf.keras.layers.Dropout(0.5) (c1)
-    c1 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (c1)
-    c1 = Norm()(c1)
-    c1 = tf.nn.tanh(c1)
-    c1 = tf.keras.layers.Dropout(0.5) (c1)
-    p1 = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2)) (c1)
+def AnotherUNetGenerator(input_shape=(256, 256, 3), n_filters=32, n_classes=3):
+    """
+    Combine both encoder and decoder blocks according to the U-Net research paper
+    Return the model as output 
+    """
+    # Input size represent the size of 1 image (the size used for pre-processing)
+    inputs = tf.keras.layers.Input(input_shape)
 
-    c2 = tf.keras.layers.Conv2D(64, (3, 3), kernel_initializer='he_normal', padding='same') (p1)
-    c2 = Norm()(c2)
-    c2 = tf.nn.tanh(c2)
-    c2 = tf.keras.layers.Dropout(0.5) (c2)
-    c2 = tf.keras.layers.Conv2D(64, (3, 3), kernel_initializer='he_normal', padding='same') (c2)
-    c2 = Norm()(c2)
-    c2 = tf.nn.tanh(c2)
-    c2 = tf.keras.layers.Dropout(0.5) (c2)
-    p2 = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2)) (c2)
+    # Encoder includes multiple convolutional mini blocks with different maxpooling, dropout and filter parameters
+    # Observe that the filters are increasing as we go deeper into the network which will increasse the # channels of the image
+    cblock1 = EncoderMiniBlock(
+        inputs, n_filters, dropout_prob=0, max_pooling=True)
+    cblock2 = EncoderMiniBlock(
+        cblock1[0], n_filters*2, dropout_prob=0, max_pooling=True)
+    cblock3 = EncoderMiniBlock(
+        cblock2[0], n_filters*4, dropout_prob=0, max_pooling=True)
+    cblock4 = EncoderMiniBlock(
+        cblock3[0], n_filters*8, dropout_prob=0.3, max_pooling=True)
+    cblock5 = EncoderMiniBlock(
+        cblock4[0], n_filters*16, dropout_prob=0.3, max_pooling=False)
 
-    up1_2 = tf.keras.layers.Conv2DTranspose(filters[0], (2, 2), strides=(2, 2), name='up12', padding='same')(c2)
-    up1_2 = Norm()(up1_2)
-    up1_2 = tf.nn.tanh(up1_2)
-    conv1_2 = tf.keras.layers.concatenate([up1_2, c1], name='merge12', axis=3)
-    c3 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (conv1_2)
-    c3 = Norm()(c3)
-    c3 = tf.nn.tanh(c3)
-    c3 = tf.keras.layers.Dropout(0.5) (c3)
-    c3 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (c3)
-    c3 = Norm()(c3)
-    c3 = tf.nn.tanh(c3)
-    c3 = tf.keras.layers.Dropout(0.5) (c3)
+    # Decoder includes multiple mini blocks with decreasing number of filters
+    # Observe the skip connections from the encoder are given as input to the decoder
+    # Recall the 2nd output of encoder block was skip connection, hence cblockn[1] is used
+    ublock6 = DecoderMiniBlock(cblock5[0], cblock4[1],  n_filters * 8)
+    ublock7 = DecoderMiniBlock(ublock6, cblock3[1],  n_filters * 4)
+    ublock8 = DecoderMiniBlock(ublock7, cblock2[1],  n_filters * 2)
+    ublock9 = DecoderMiniBlock(ublock8, cblock1[1],  n_filters)
 
-    conv3_1 = tf.keras.layers.Conv2D(128, (3, 3), kernel_initializer='he_normal', padding='same') (p2)
-    conv3_1 = Norm()(conv3_1)
-    conv3_1 = tf.nn.tanh(conv3_1)
-    conv3_1 = tf.keras.layers.Dropout(0.5) (conv3_1)
-    conv3_1 = tf.keras.layers.Conv2D(128, (3, 3), kernel_initializer='he_normal', padding='same') (conv3_1)
-    conv3_1 = Norm()(conv3_1)
-    conv3_1 = tf.nn.tanh(conv3_1)
-    conv3_1 = tf.keras.layers.Dropout(0.5) (conv3_1)
-    pool3 = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='pool3')(conv3_1)
+    # Complete the model with 1 3x3 convolution layer (Same as the prev Conv Layers)
+    # Followed by a 1x1 Conv layer to get the image to the desired size.
+    # Observe the number of channels will be equal to number of output classes
+    conv9 = tf.keras.layers.Conv2D(n_filters,
+                   3,
+                   activation='relu',
+                   padding='same',
+                   kernel_initializer='he_normal')(ublock9)
 
-    up2_2 = tf.keras.layers.Conv2DTranspose(filters[1], (2, 2), strides=(2, 2), name='up22', padding='same')(conv3_1)
-    up2_2 = Norm()(up2_2)
-    up2_2 = tf.nn.tanh(up2_2)
-    conv2_2 = tf.keras.layers.concatenate([up2_2, c2], name='merge22', axis=3) #x10
-    conv2_2 = tf.keras.layers.Conv2D(64, (3, 3), kernel_initializer='he_normal', padding='same') (conv2_2)
-    conv2_2 = Norm()(conv2_2)
-    conv2_2 = tf.nn.tanh(conv2_2)
-    conv2_2 = tf.keras.layers.Dropout(0.5) (conv2_2)
-    conv2_2 = tf.keras.layers.Conv2D(64, (3, 3), kernel_initializer='he_normal', padding='same') (conv2_2)
-    conv2_2 = Norm()(conv2_2)
-    conv2_2 = tf.nn.tanh(conv2_2)
-    conv2_2 = tf.keras.layers.Dropout(0.5) (conv2_2)
+    conv10 = tf.keras.layers.Conv2D(n_classes, 1, padding='same')(conv9)
 
-    up1_3 = tf.keras.layers.Conv2DTranspose(filters[0], (2, 2), strides=(2, 2), name='up13', padding='same')(conv2_2)
-    up1_3 = Norm()(up1_3)
-    up1_3 = tf.nn.tanh(up1_3)
-    conv1_3 = tf.keras.layers.concatenate([up1_3, c1, c3], name='merge13', axis=3)
+    # Define the model
+    model = tf.keras.Model(inputs=inputs, outputs=conv10)
 
-    conv1_3 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (conv1_3)
-    conv1_3 = Norm()(conv1_3)
-    conv1_3 = tf.nn.tanh(conv1_3)
-    conv1_3 = tf.keras.layers.Dropout(0.5) (conv1_3)
-    conv1_3 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (conv1_3)
-    conv1_3 = Norm()(conv1_3)
-    conv1_3 = tf.nn.tanh(conv1_3)
-    conv1_3 = tf.keras.layers.Dropout(0.5) (conv1_3)
-
-    conv4_1 = tf.keras.layers.Conv2D(256, (3, 3), kernel_initializer='he_normal', padding='same') (pool3)
-    conv4_1 = Norm()(conv4_1)
-    conv4_1 = tf.nn.tanh(conv4_1)
-    conv4_1 = tf.keras.layers.Dropout(0.5) (conv4_1)
-    conv4_1 = tf.keras.layers.Conv2D(256, (3, 3), kernel_initializer='he_normal', padding='same') (conv4_1)
-    conv4_1 = Norm()(conv4_1)
-    conv4_1 = tf.nn.tanh(conv4_1)
-    conv4_1 = tf.keras.layers.Dropout(0.5) (conv4_1)
-    pool4 = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='pool4')(conv4_1)
-
-    up3_2 = tf.keras.layers.Conv2DTranspose(filters[2], (2, 2), strides=(2, 2), name='up32', padding='same')(conv4_1)
-    up3_2 = Norm()(up3_2)
-    up3_2 = tf.nn.tanh(up3_2)
-    conv3_2 = tf.keras.layers.concatenate([up3_2, conv3_1], name='merge32', axis=3) #x20
-    
-    conv3_2 = tf.keras.layers.Conv2D(128, (3, 3), kernel_initializer='he_normal', padding='same') (conv3_2)
-    conv3_2 = Norm()(conv3_2)
-    conv3_2 = tf.nn.tanh(conv3_2)
-    conv3_2 = tf.keras.layers.Dropout(0.5) (conv3_2)
-    conv3_2 = tf.keras.layers.Conv2D(128, (3, 3), kernel_initializer='he_normal', padding='same') (conv3_2)
-    conv3_2 = Norm()(conv3_2)
-    conv3_2 = tf.nn.tanh(conv3_2)
-    conv3_2 = tf.keras.layers.Dropout(0.5) (conv3_2)
-
-    up2_3 = tf.keras.layers.Conv2DTranspose(filters[1], (2, 2), strides=(2, 2), name='up23', padding='same')(conv3_2)
-    up2_3 = Norm()(up2_3)
-    up2_3 = tf.nn.tanh(up2_3)
-    conv2_3 = tf.keras.layers.concatenate([up2_3, c2, conv2_2], name='merge23', axis=3)
-    conv2_3 = tf.keras.layers.Conv2D(64, (3, 3), kernel_initializer='he_normal', padding='same') (conv2_3)
-    conv2_3 = Norm()(conv2_3)
-    conv2_3 = tf.nn.tanh(conv2_3)
-    conv2_3 = tf.keras.layers.Dropout(0.5) (conv2_3)
-    conv2_3 = tf.keras.layers.Conv2D(64, (3, 3), kernel_initializer='he_normal', padding='same') (conv2_3)
-    conv2_3 = Norm()(conv2_3)
-    conv2_3 = tf.nn.tanh(conv2_3)
-    conv2_3 = tf.keras.layers.Dropout(0.5) (conv2_3)
-
-    up1_4 = tf.keras.layers.Conv2DTranspose(filters[0], (2, 2), strides=(2, 2), name='up14', padding='same')(conv2_3)
-    up1_4 = Norm()(up1_4)
-    up1_4 = tf.nn.tanh(up1_4)
-    conv1_4 = tf.keras.layers.concatenate([up1_4, c1, c3, conv1_3], name='merge14', axis=3)
-    conv1_4 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (conv1_4)
-    conv1_4 = Norm()(conv1_4)
-    conv1_4 = tf.nn.tanh(conv1_4)
-    conv1_4 = tf.keras.layers.Dropout(0.5) (conv1_4)
-    conv1_4 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (conv1_4)
-    conv1_4 = Norm()(conv1_4)
-    conv1_4 = tf.nn.tanh(conv1_4)
-    conv1_4 = tf.keras.layers.Dropout(0.5) (conv1_4)
-
-    conv5_1 = tf.keras.layers.Conv2D(512, (3, 3), kernel_initializer='he_normal', padding='same') (pool4)
-    conv5_1 = Norm()(conv5_1)
-    conv5_1 = tf.nn.tanh(conv5_1)
-    conv5_1 = tf.keras.layers.Dropout(0.5) (conv5_1)
-    conv5_1 = tf.keras.layers.Conv2D(512, (3, 3), kernel_initializer='he_normal', padding='same') (conv5_1)
-    conv5_1 = Norm()(conv5_1)
-    conv5_1 = tf.nn.tanh(conv5_1)
-    conv5_1 = tf.keras.layers.Dropout(0.5) (conv5_1)
-
-    up4_2 = tf.keras.layers.Conv2DTranspose(filters[3], (2, 2), strides=(2, 2), name='up42', padding='same')(conv5_1)
-    up4_2 = Norm()(up4_2)
-    up4_2 = tf.nn.tanh(up4_2)
-    conv4_2 = tf.keras.layers.concatenate([up4_2, conv4_1], name='merge42', axis=3) #x30
-    conv4_2 = tf.keras.layers.Conv2D(256, (3, 3), kernel_initializer='he_normal', padding='same') (conv4_2)
-    conv4_2 = Norm()(conv4_2)
-    conv4_2 = tf.nn.tanh(conv4_2)
-    conv4_2 = tf.keras.layers.Dropout(0.5) (conv4_2)
-    conv4_2 = tf.keras.layers.Conv2D(256, (3, 3), kernel_initializer='he_normal', padding='same') (conv4_2)
-    conv4_2 = Norm()(conv4_2)
-    conv4_2 = tf.nn.tanh(conv4_2)
-    conv4_2 = tf.keras.layers.Dropout(0.5) (conv4_2)
-
-    up3_3 = tf.keras.layers.Conv2DTranspose(filters[2], (2, 2), strides=(2, 2), name='up33', padding='same')(conv4_2)
-    up3_3 = Norm()(up3_3)
-    up3_3 = tf.nn.tanh(up3_3)
-    conv3_3 = tf.keras.layers.concatenate([up3_3, conv3_1, conv3_2], name='merge33', axis=3)
-    conv3_3 = tf.keras.layers.Conv2D(128, (3, 3), kernel_initializer='he_normal', padding='same') (conv3_3)
-    conv3_3 = Norm()(conv3_3)
-    conv3_3 = tf.nn.tanh(conv3_3)
-    conv3_3 = tf.keras.layers.Dropout(0.5) (conv3_3)
-    conv3_3 = tf.keras.layers.Conv2D(128, (3, 3), kernel_initializer='he_normal', padding='same') (conv3_3)
-    conv3_3 = Norm()(conv3_3)
-    conv3_3 = tf.nn.tanh(conv3_3)
-    conv3_3 = tf.keras.layers.Dropout(0.5) (conv3_3)
-
-    up2_4 = tf.keras.layers.Conv2DTranspose(filters[1], (2, 2), strides=(2, 2), name='up24', padding='same')(conv3_3)
-    up2_4 = Norm()(up2_4)
-    up2_4 = tf.nn.tanh(up2_4)
-    conv2_4 = tf.keras.layers.concatenate([up2_4, c2, conv2_2, conv2_3], name='merge24', axis=3)
-    conv2_4 = tf.keras.layers.Conv2D(64, (3, 3), kernel_initializer='he_normal', padding='same') (conv2_4)
-    conv2_4 = Norm()(conv2_4)
-    conv2_4 = tf.nn.tanh(conv2_4)
-    conv2_4 = tf.keras.layers.Dropout(0.5) (conv2_4)
-    conv2_4 = tf.keras.layers.Conv2D(64, (3, 3), kernel_initializer='he_normal', padding='same') (conv2_4)
-    conv2_4 = Norm()(conv2_4)
-    conv2_4 = tf.nn.tanh(conv2_4)
-    conv2_4 = tf.keras.layers.Dropout(0.5) (conv2_4)
-
-    up1_5 = tf.keras.layers.Conv2DTranspose(filters[0], (2, 2), strides=(2, 2), name='up15', padding='same')(conv2_4)
-    up1_5 = Norm()(up1_5)
-    up1_5 = tf.nn.tanh(up1_5)
-    conv1_5 = tf.keras.layers.concatenate([up1_5, c1, c3, conv1_3, conv1_4], name='merge15', axis=3)
-    conv1_5 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (conv1_5)
-    conv1_5 = Norm()(conv1_5)
-    conv1_5 = tf.nn.tanh(conv1_5)
-    conv1_5 = tf.keras.layers.Dropout(0.5) (conv1_5)
-    conv1_5 = tf.keras.layers.Conv2D(32, (3, 3), kernel_initializer='he_normal', padding='same') (conv1_5)
-    conv1_5 = Norm()(conv1_5)
-    conv1_5 = tf.nn.tanh(conv1_5)
-    conv1_5 = tf.keras.layers.Dropout(0.5) (conv1_5)
-
-    nestnet_output_4 = tf.keras.layers.Conv2D(3, (1, 1), activation='sigmoid', kernel_initializer = 'he_normal',  name='output_4', padding='same')(conv1_5)
-    
-    nestnet_output_4 = Norm()(nestnet_output_4)
-    nestnet_output_4 = tf.nn.tanh(nestnet_output_4)
-    return tf.keras.Model(inputs=s, outputs=[nestnet_output_4])
+    return model
 
 
 def AnotherUnetDiscriminator(input_shape=(256, 256, 3),
@@ -686,7 +536,8 @@ def OpUNetDiscriminator(input_shape=(256, 256, 3),
     x = inp
 
     if target:
-        tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
+        # tar = tf.keras.layers.Input(shape=[None, None, 3], name='target_image')
+        tar = tf.keras.layers.Input(shape=input_shape, name='target_image')
         x = tf.keras.layers.concatenate(
             [inp, tar])  # (bs, 256, 256, channels*2)
 
@@ -701,7 +552,7 @@ def OpUNetDiscriminator(input_shape=(256, 256, 3),
     conv = Oper2D(
         512, 4, strides=1, padding='valid', q=q
         # , apply_initializer=True
-        )(zero_pad1)  # (bs, 31, 31, 512)
+    )(zero_pad1)  # (bs, 31, 31, 512)
 
     norm1 = Norm()(conv)
     leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
@@ -711,12 +562,14 @@ def OpUNetDiscriminator(input_shape=(256, 256, 3),
     last = Oper2D(
         1, 4, strides=1, padding='valid', q=q
         # , apply_initializer=True
-        )(zero_pad2)  # (bs, 30, 30, 1)
+    )(zero_pad2)  # (bs, 30, 30, 1)
 
     if target:
         return tf.keras.Model(inputs=[inp, tar], outputs=last)
     else:
         return tf.keras.Model(inputs=inp, outputs=last)
+
+
 # ==============================================================================
 # =                          learning rate scheduler                           =
 # ==============================================================================

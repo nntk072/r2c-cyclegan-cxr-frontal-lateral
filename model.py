@@ -102,7 +102,8 @@ class model:
         elif self.args.method == 'unet':
             self.D_A = module.UNetDiscriminator(input_shape=input_shape)
         elif self.args.method == 'anotherunet':
-            self.D_A = module.AnotherUnetDiscriminator(input_shape=input_shape)
+            # self.D_A = module.AnotherUnetDiscriminator(input_shape=input_shape)
+            self.D_A = module.ConvDiscriminator(input_shape=input_shape)
         elif self.args.method == 'operational_unet':
             self.D_A = module.OpUNetDiscriminator(input_shape=input_shape, q=q)
         else:
@@ -238,9 +239,9 @@ class model:
         return A2B, B2A, A2B2A, B2A2B
 
     def summary(self):
-        
+
         with open(f'output/{self.args.method}/modelsummary.txt', 'w') as f:
             self.G_A2B.summary(print_fn=lambda x: f.write(x + '\n'))
             self.G_B2A.summary(print_fn=lambda x: f.write(x + '\n'))
             self.D_A.summary(print_fn=lambda x: f.write(x + '\n'))
-            self.D_B.summary(print_fn=lambda x: f.write(x + '\n'))        
+            self.D_B.summary(print_fn=lambda x: f.write(x + '\n'))
