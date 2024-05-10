@@ -117,7 +117,8 @@ class model:
         elif self.filter == 'unet':
             self.D_B = module.UNetDiscriminator(input_shape=input_shape)
         elif self.filter == 'anotherunet':
-            self.D_B = module.AnotherUnetDiscriminator(input_shape=input_shape)
+            # self.D_B = module.AnotherUnetDiscriminator(input_shape=input_shape)
+            self.D_B = module.ConvDiscriminator(input_shape=input_shape)
         elif self.filter == 'operational_unet':
             self.D_B = module.OpUNetDiscriminator(input_shape=input_shape, q=q)
         else:

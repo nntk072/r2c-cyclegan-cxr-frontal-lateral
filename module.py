@@ -293,15 +293,12 @@ def UNetGenerator(input_shape=(256, 256, 3),
         upsample(64, 4, norm),  # (bs, 128, 128, 128)
     ]
 
-    # initializer = tf.random_normal_initializer(0., 0.02)
-    # last = tf.keras.layers.Conv2DTranspose(
-    #     output_channels, 4, strides=2,
-    #     padding='same', kernel_initializer=initializer,
-    #     activation='tanh')  # (bs, 256, 256, 3)
-    # Do not use initializer for last layer.
+    initializer = tf.random_normal_initializer(0., 0.02)
     last = tf.keras.layers.Conv2DTranspose(
         output_channels, 4, strides=2,
-        padding='same', activation='tanh')  # (bs, 256, 256, 3)
+        padding='same',
+        # kernel_initializer=initializer,
+        activation='tanh')  # (bs, 256, 256, 3)
 
     concat = tf.keras.layers.Concatenate()
 
@@ -378,12 +375,12 @@ def UNetDiscriminator(input_shape=(256, 256, 3),
         return tf.keras.Model(inputs=inp, outputs=last)
 
 
-def AnotherUNetGenerator(input_shape=(256, 256, 3), n_filters=32, n_classes=3):
+def AnotherUNetGenerator(input_shape=(256, 256, 3), n_filters=32, n_classes=3, norm='instance_norm'):
     """
     Combine both encoder and decoder blocks according to the U-Net research paper
     Return the model as output 
     """
-    # Input size represent the size of 1 image (the size used for pre-processing)
+    Norm = _get_norm_layer(norm)
     inputs = tf.keras.layers.Input(input_shape)
 
     # Encoder includes multiple convolutional mini blocks with different maxpooling, dropout and filter parameters
@@ -411,12 +408,16 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3), n_filters=32, n_classes=3):
     # Followed by a 1x1 Conv layer to get the image to the desired size.
     # Observe the number of channels will be equal to number of output classes
     conv9 = tf.keras.layers.Conv2D(n_filters,
-                   3,
-                   activation='relu',
-                   padding='same',
-                   kernel_initializer='he_normal')(ublock9)
-
+                                   3,
+                                   #    activation='relu',
+                                   padding='same',
+                                   #    kernel_initializer='he_normal'
+                                   )(ublock9)
+    conv9 = Norm()(conv9)
+    conv9 = tf.nn.tanh(conv9)
     conv10 = tf.keras.layers.Conv2D(n_classes, 1, padding='same')(conv9)
+    conv10 = Norm()(conv10)
+    conv10 = tf.nn.tanh(conv10)
 
     # Define the model
     model = tf.keras.Model(inputs=inputs, outputs=conv10)
@@ -490,7 +491,6 @@ def OpUNetGenerator(input_shape=(256, 256, 3),
         output_channels, 4, strides=2,
         padding='same', q=q,
         activation='tanh',
-        # apply_initializer=True)  # (bs, 256, 256, 3)
         apply_initializer=False)  # (bs, 256, 256, 3)
     concat = tf.keras.layers.Concatenate()
 
@@ -555,9 +555,9 @@ def OpUNetDiscriminator(input_shape=(256, 256, 3),
     )(zero_pad1)  # (bs, 31, 31, 512)
 
     norm1 = Norm()(conv)
-    leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
+    tanh = tf.nn.tanh(norm1)
 
-    zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
+    zero_pad2 = tf.keras.layers.ZeroPadding2D()(tanh)  # (bs, 33, 33, 512)
 
     last = Oper2D(
         1, 4, strides=1, padding='valid', q=q
