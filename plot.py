@@ -26,10 +26,10 @@ def main():
     B2B_id_loss_list = np.array([])
     A_d_loss_list = np.array([])
     B_d_loss_list = np.array([])
-    ssim_A2B_list = np.array([])
-    psnr_A2B_list = np.array([])
-    ssim_B2A_list = np.array([])
-    psnr_B2A_list = np.array([])
+    # ssim_A2B_list = np.array([])
+    # psnr_A2B_list = np.array([])
+    # ssim_B2A_list = np.array([])
+    # psnr_B2A_list = np.array([])
     ep_list = np.array([])
     epoch = int(input('Enter the number of epochs: '))
 
@@ -50,14 +50,14 @@ def main():
             f'output/{method}/plot_data/training/loss_A_d_loss_{ep}.npy')
         B_d_loss = np.load(
             f'output/{method}/plot_data/training/loss_B_d_loss_{ep}.npy')
-        ssim_A2B = np.load(
-            f'output/{method}/plot_data/training/ssim_A2B_value_list_{ep}.npy')
-        psnr_A2B = np.load(
-            f'output/{method}/plot_data/training/psnr_A2B_value_list_{ep}.npy')
-        ssim_B2A = np.load(
-            f'output/{method}/plot_data/training/ssim_B2A_value_list_{ep}.npy')
-        psnr_B2A = np.load(
-            f'output/{method}/plot_data/training/psnr_B2A_value_list_{ep}.npy')
+        # ssim_A2B = np.load(
+        #     f'output/{method}/plot_data/training/ssim_A2B_value_list_{ep}.npy')
+        # psnr_A2B = np.load(
+        #     f'output/{method}/plot_data/training/psnr_A2B_value_list_{ep}.npy')
+        # ssim_B2A = np.load(
+        #     f'output/{method}/plot_data/training/ssim_B2A_value_list_{ep}.npy')
+        # psnr_B2A = np.load(
+        #     f'output/{method}/plot_data/training/psnr_B2A_value_list_{ep}.npy')
         iterations = np.load(
             f'output/{method}/plot_data/training/iterations_{ep}.npy')
 
@@ -72,10 +72,10 @@ def main():
         B2B_id_loss_list = np.append(B2B_id_loss_list, np.mean(B2B_id_loss))
         A_d_loss_list = np.append(A_d_loss_list, np.mean(A_d_loss))
         B_d_loss_list = np.append(B_d_loss_list, np.mean(B_d_loss))
-        ssim_A2B_list = np.append(ssim_A2B_list, np.mean(ssim_A2B))
-        psnr_A2B_list = np.append(psnr_A2B_list, np.mean(psnr_A2B))
-        ssim_B2A_list = np.append(ssim_B2A_list, np.mean(ssim_B2A))
-        psnr_B2A_list = np.append(psnr_B2A_list, np.mean(psnr_B2A))
+        # ssim_A2B_list = np.append(ssim_A2B_list, np.mean(ssim_A2B))
+        # psnr_A2B_list = np.append(psnr_A2B_list, np.mean(psnr_A2B))
+        # ssim_B2A_list = np.append(ssim_B2A_list, np.mean(ssim_B2A))
+        # psnr_B2A_list = np.append(psnr_B2A_list, np.mean(psnr_B2A))
         ep_list = np.append(ep_list, ep)
 
     # Do the same with the valid
@@ -87,10 +87,10 @@ def main():
     B2B_id_loss_list_valid = np.array([])
     A_d_loss_list_valid = np.array([])
     B_d_loss_list_valid = np.array([])
-    ssim_A2B_list_valid = np.array([])
-    ssim_B2A_list_valid = np.array([])
-    psnr_A2B_list_valid = np.array([])
-    psnr_B2A_list_valid = np.array([])
+    # ssim_A2B_list_valid = np.array([])
+    # ssim_B2A_list_valid = np.array([])
+    # psnr_A2B_list_valid = np.array([])
+    # psnr_B2A_list_valid = np.array([])
     ep_list_valid = np.array([])
     for ep in range(0, epoch):  # the name of the folder is validation
         A2B_g_loss = np.load(
@@ -109,14 +109,14 @@ def main():
             f'output/{method}/plot_data/validation/loss_A_d_loss_{ep}.npy')
         B_d_loss = np.load(
             f'output/{method}/plot_data/validation/loss_B_d_loss_{ep}.npy')
-        ssim_A2B = np.load(
-            f'output/{method}/plot_data/validation/ssim_A2B_value_list_{ep}.npy')
-        psnr_A2B = np.load(
-            f'output/{method}/plot_data/validation/psnr_A2B_value_list_{ep}.npy')
-        ssim_B2A = np.load(
-            f'output/{method}/plot_data/validation/ssim_B2A_value_list_{ep}.npy')
-        psnr_B2A = np.load(
-            f'output/{method}/plot_data/validation/psnr_B2A_value_list_{ep}.npy')
+        # ssim_A2B = np.load(
+        #     f'output/{method}/plot_data/validation/ssim_A2B_value_list_{ep}.npy')
+        # psnr_A2B = np.load(
+        #     f'output/{method}/plot_data/validation/psnr_A2B_value_list_{ep}.npy')
+        # ssim_B2A = np.load(
+        #     f'output/{method}/plot_data/validation/ssim_B2A_value_list_{ep}.npy')
+        # psnr_B2A = np.load(
+        #     f'output/{method}/plot_data/validation/psnr_B2A_value_list_{ep}.npy')
         iterations = np.load(
             f'output/{method}/plot_data/validation/iterations_{ep}.npy')
 
@@ -135,10 +135,10 @@ def main():
             B2B_id_loss_list_valid, np.mean(B2B_id_loss))
         A_d_loss_list_valid = np.append(A_d_loss_list_valid, np.mean(A_d_loss))
         B_d_loss_list_valid = np.append(B_d_loss_list_valid, np.mean(B_d_loss))
-        ssim_A2B_list_valid = np.append(ssim_A2B_list_valid, np.mean(ssim_A2B))
-        psnr_A2B_list_valid = np.append(psnr_A2B_list_valid, np.mean(psnr_A2B))
-        ssim_B2A_list_valid = np.append(ssim_B2A_list_valid, np.mean(ssim_B2A))
-        psnr_B2A_list_valid = np.append(psnr_B2A_list_valid, np.mean(psnr_B2A))
+        # ssim_A2B_list_valid = np.append(ssim_A2B_list_valid, np.mean(ssim_A2B))
+        # psnr_A2B_list_valid = np.append(psnr_A2B_list_valid, np.mean(psnr_A2B))
+        # ssim_B2A_list_valid = np.append(ssim_B2A_list_valid, np.mean(ssim_B2A))
+        # psnr_B2A_list_valid = np.append(psnr_B2A_list_valid, np.mean(psnr_B2A))
         ep_list_valid = np.append(ep_list_valid, ep)
 
     # Plot into 4 figures, g_loss, cycle_loss, id_loss, d_loss
@@ -154,31 +154,16 @@ def main():
     plt.xlabel('Epochs', fontsize='large')
     plt.ylabel('Loss', fontsize='large')
     plt.grid(which='major', color='black', linewidth=0.5)
-    plt.minorticks_on()
-    plt.grid(which='minor', color='gray', linewidth=0.5)
     plt.xlim(ep_list[0], ep_list[-1])
-    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-    if max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) < 0.25:
-        plt.ylim(0, 0.25)
-        plt.yticks(np.arange(0, 0.25, 0.025))
-    elif max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) < 0.5:
-        plt.ylim(0, 0.5)
-        plt.yticks(np.arange(0, 0.5, 0.05))
-    elif max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) < 0.75:
-        plt.ylim(0, 0.75)
-        plt.yticks(np.arange(0, 0.75, 0.05))
-    elif max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) < 1:
-        plt.ylim(0, 1)
-        plt.yticks(np.arange(0, 1, 0.05))
-    # Limit into 4 if the max value >4
-    elif max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) > 4:
-        plt.ylim(0, 4)
-        plt.yticks(np.arange(0, 4, 0.2))
-    else:
-        plt.ylim(0, max(max(A2B_g_loss_list), max(B2A_g_loss_list),
-                 max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)))
-        plt.yticks(np.arange(0, max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(
-            A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)), 0.05))
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], epoch/10))
+    for i in range(100, 0, -1):
+        if max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) <= 0.25 * i:
+            if max(max(A2B_g_loss_list), max(B2A_g_loss_list), max(A2B_g_loss_list_valid), max(B2A_g_loss_list_valid)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
     # Save as high-res image
     plt.savefig(f'output/{method}/generator_losses.png')
     plt.close()
@@ -198,31 +183,18 @@ def main():
     plt.xlabel('Epochs', fontsize='large')
     plt.ylabel('Loss', fontsize='large')
     plt.grid(which='major', color='black', linewidth=0.5)
-    plt.minorticks_on()
-    plt.grid(which='minor', color='gray', linewidth=0.5)
+    # plt.minorticks_on()
+    # plt.grid(which='minor', color='gray', linewidth=0.5)
     plt.xlim(ep_list[0], ep_list[-1])
-    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-    if max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) < 0.25:
-        plt.ylim(0, 0.25)
-        plt.yticks(np.arange(0, 0.25, 0.025))
-    elif max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) < 0.5:
-        plt.ylim(0, 0.5)
-        plt.yticks(np.arange(0, 0.5, 0.05))
-    elif max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) < 0.75:
-        plt.ylim(0, 0.75)
-        plt.yticks(np.arange(0, 0.75, 0.05))
-    elif max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) < 1:
-        plt.ylim(0, 1)
-        plt.yticks(np.arange(0, 1, 0.05))
-    # Limit the max value into 4 if the max value >4
-    elif max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) > 4:
-        plt.ylim(0, 4)
-        plt.yticks(np.arange(0, 4, 0.2))
-    else:
-        plt.ylim(0, max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(
-            A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)))
-        plt.yticks(np.arange(0, max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(
-            A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)), 0.05))
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], epoch/10))
+    for i in range(100, 0, -1):
+        if max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) <= 0.25 * i:
+            if max(max(A2B2A_cycle_loss_list), max(B2A2B_cycle_loss_list), max(A2B2A_cycle_loss_list_valid), max(B2A2B_cycle_loss_list_valid)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
     plt.savefig(f'output/{method}/cycle_losses.png')  # Save as high-res image
     plt.close()
 
@@ -239,31 +211,18 @@ def main():
     plt.xlabel('Epochs', fontsize='large')
     plt.ylabel('Loss', fontsize='large')
     plt.grid(which='major', color='black', linewidth=0.5)
-    plt.minorticks_on()
-    plt.grid(which='minor', color='gray', linewidth=0.5)
+    # plt.minorticks_on()
+    # plt.grid(which='minor', color='gray', linewidth=0.5)
     plt.xlim(ep_list[0], ep_list[-1])
-    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-    if max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) < 0.25:
-        plt.ylim(0, 0.25)
-        plt.yticks(np.arange(0, 0.25, 0.025))
-    elif max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) < 0.5:
-        plt.ylim(0, 0.5)
-        plt.yticks(np.arange(0, 0.5, 0.05))
-    elif max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) < 0.75:
-        plt.ylim(0, 0.75)
-        plt.yticks(np.arange(0, 0.75, 0.05))
-    elif max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) < 1:
-        plt.ylim(0, 1)
-        plt.yticks(np.arange(0, 1, 0.05))
-    # Limit into 4
-    elif max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) > 4:
-        plt.ylim(0, 4)
-        plt.yticks(np.arange(0, 4, 0.2))
-    else:
-        plt.ylim(0, max(max(A2A_id_loss_list), max(B2B_id_loss_list),
-                 max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)))
-        plt.yticks(np.arange(0, max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(
-            A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)), 0.05))
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], epoch/10))
+    for i in range(100, 0, -1):
+        if max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) <= 0.25 * i:
+            if max(max(A2A_id_loss_list), max(B2B_id_loss_list), max(A2A_id_loss_list_valid), max(B2B_id_loss_list_valid)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
     # Save as high-res image
     plt.savefig(f'output/{method}/identity_losses.png')
     plt.close()
@@ -281,31 +240,18 @@ def main():
     plt.xlabel('Epochs', fontsize='large')
     plt.ylabel('Loss', fontsize='large')
     plt.grid(which='major', color='black', linewidth=0.5)
-    plt.minorticks_on()
-    plt.grid(which='minor', color='gray', linewidth=0.5)
+    # plt.minorticks_on()
+    # plt.grid(which='minor', color='gray', linewidth=0.5)
     plt.xlim(ep_list[0], ep_list[-1])
-    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-    if max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) < 0.25:
-        plt.ylim(0, 0.25)
-        plt.yticks(np.arange(0, 0.25, 0.025))
-    elif max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) < 0.5:
-        plt.ylim(0, 0.5)
-        plt.yticks(np.arange(0, 0.5, 0.05))
-    elif max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) < 0.75:
-        plt.ylim(0, 0.75)
-        plt.yticks(np.arange(0, 0.75, 0.05))
-    elif max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) < 1:
-        plt.ylim(0, 1)
-        plt.yticks(np.arange(0, 1, 0.05))
-    # Limit the number into 4 if the max value >4
-    elif max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) > 4:
-        plt.ylim(0, 4)
-        plt.yticks(np.arange(0, 4, 0.2))
-    else:
-        plt.ylim(0, max(max(A_d_loss_list), max(B_d_loss_list),
-                 max(A_d_loss_list_valid), max(B_d_loss_list_valid)))
-        plt.yticks(np.arange(0, max(max(A_d_loss_list), max(B_d_loss_list), max(
-            A_d_loss_list_valid), max(B_d_loss_list_valid)), 0.05))
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], epoch/10))
+    for i in range(100, 0, -1):
+        if max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) <= 0.25 * i:
+            if max(max(A_d_loss_list), max(B_d_loss_list), max(A_d_loss_list_valid), max(B_d_loss_list_valid)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
     # Save as high-res image
     plt.savefig(f'output/{method}/discriminator_losses.png')
     plt.close()
@@ -324,21 +270,16 @@ def main():
     plt.xlabel('Epochs', fontsize='large')
     plt.ylabel('PSNR', fontsize='large')
     plt.grid(which='major', color='black', linewidth=0.5)
-    plt.minorticks_on()
-    plt.grid(which='minor', color='gray', linewidth=0.5)
     plt.xlim(ep_list[0], ep_list[-1])
-    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-    if max(max(psnr_A2B_list), max(psnr_B2A_list), max(psnr_A2B_list_valid), max(psnr_B2A_list_valid)) < 15:
-        plt.ylim(0, 15)
-        plt.yticks(np.arange(0, 15, 1.5))
-    elif max(max(psnr_A2B_list), max(psnr_B2A_list), max(psnr_A2B_list_valid), max(psnr_B2A_list_valid)) < 20:
-        plt.ylim(0, 20)
-        plt.yticks(np.arange(0, 20, 2))
-    else:
-        plt.ylim(0, max(max(psnr_A2B_list), max(psnr_B2A_list), max(
-            psnr_A2B_list_valid), max(psnr_B2A_list_valid)))
-        plt.yticks(np.arange(0, max(max(psnr_A2B_list), max(psnr_B2A_list), max(
-            psnr_A2B_list_valid), max(psnr_B2A_list_valid)), 2.5))
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], epoch/10))
+    for i in range(1000, 0, -1):
+        if max(max(psnr_A2B_list), max(psnr_B2A_list), max(psnr_A2B_list_valid), max(psnr_B2A_list_valid)) <= 0.25 * i:
+            if max(max(psnr_A2B_list), max(psnr_B2A_list), max(psnr_A2B_list_valid), max(psnr_B2A_list_valid)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
     plt.savefig(f'output/{method}/psnr.png')  # Save as high-res image
     plt.close()
 
@@ -355,50 +296,17 @@ def main():
     plt.xlabel('Epochs', fontsize='large')
     plt.ylabel('SSIM', fontsize='large')
     plt.grid(which='major', color='black', linewidth=0.5)
-    plt.minorticks_on()
-    plt.grid(which='minor', color='gray', linewidth=0.5)
     plt.xlim(ep_list[0], ep_list[-1])
-    plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-    # plt.ylim(-1, 1)
-    # plt.yticks(np.arange(-1, 1, 0.1))
+    plt.xticks(np.arange(ep_list[0], ep_list[-1], epoch/10))
+    for i in range(100, 0, -1):
+        if max(max(ssim_A2B_list), max(ssim_B2A_list), max(ssim_A2B_list_valid), max(ssim_B2A_list_valid)) <= 0.25 * i:
+            if max(max(ssim_A2B_list), max(ssim_B2A_list), max(ssim_A2B_list_valid), max(ssim_B2A_list_valid)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
     plt.savefig(f'output/{method}/ssim.png')  # Save as high-res image
-
-    # # Asking for the starting and ending epoch and concatenating the data for the plot
-    # # Start epoch
-    # start_epoch = int(input('Enter the starting epoch: '))
-    # # End epoch
-    # end_epoch = int(input('Enter the ending epoch: '))
-    # if start_epoch < 0 or end_epoch < 0:
-    #     raise ValueError('The starting and ending epoch must be greater than 0')
-    # if start_epoch > end_epoch:
-    #     raise ValueError('The starting epoch must be less than the ending epoch')
-
-    # # Concatenate the data for the plot
-    # A2B_g_loss = np.concatenate([np.load(f'output/plot_data/loss_A2B_g_loss_{ep}.npy') for ep in range(start_epoch, end_epoch)])
-    # B2A_g_loss = np.concatenate([np.load(f'output/plot_data/loss_B2A_g_loss_{ep}.npy') for ep in range(start_epoch, end_epoch)])
-    # A2B2A_cycle_loss = np.concatenate([np.load(f'output/plot_data/loss_A2B2A_cycle_loss_{ep}.npy') for ep in range(start_epoch, end_epoch)])
-    # B2A2B_cycle_loss = np.concatenate([np.load(f'output/plot_data/loss_B2A2B_cycle_loss_{ep}.npy') for ep in range(start_epoch, end_epoch)])
-    # A2A_id_loss = np.concatenate([np.load(f'output/plot_data/loss_A2A_id_loss_{ep}.npy') for ep in range(start_epoch, end_epoch)])
-    # B2B_id_loss = np.concatenate([np.load(f'output/plot_data/loss_B2B_id_loss_{ep}.npy') for ep in range(start_epoch, end_epoch)])
-    # A_d_loss = np.concatenate([np.load(f'output/plot_data/loss_A_d_loss_{ep}.npy') for ep in range(start_epoch, end_epoch)])
-    # B_d_loss = np.concatenate([np.load(f'output/plot_data/loss_B_d_loss_{ep}.npy') for ep in range(start_epoch, end_epoch)])
-    # iterations = np.concatenate([np.load(f'output/plot_data/iterations_{ep}.npy') for ep in range(start_epoch, end_epoch)])
-
-    # # Plot the loss data for each iteration
-    # plt.plot(iterations, A2B_g_loss, label='A2B_g_loss')
-    # plt.plot(iterations, B2A_g_loss, label='B2A_g_loss')
-    # plt.plot(iterations, A2B2A_cycle_loss, label='A2B2A_cycle_loss')
-    # plt.plot(iterations, B2A2B_cycle_loss, label='B2A2B_cycle_loss')
-    # plt.plot(iterations, A2A_id_loss, label='A2A_id_loss')
-    # plt.plot(iterations, B2B_id_loss, label='B2B_id_loss')
-    # plt.plot(iterations, A_d_loss, label='A_d_loss')
-    # plt.plot(iterations, B_d_loss, label='B_d_loss')
-    # plt.xlabel('Iterations')
-    # plt.ylabel('Loss')
-    # plt.title('Loss vs Iterations')
-    # plt.legend()
-    # plt.show()
-    # plt.savefig(f'output/plot_figure/loss_vs_iterations_{start_epoch}_to_{end_epoch}.png')
 
 
 def save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep, name, method):
@@ -424,45 +332,93 @@ def save_plot_data(iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_c
 
 
 def temporary_plot(g_loss_dir, d_loss_dir, cycle_loss_dir, id_loss_dir, iterations, A2B_g_loss, B2A_g_loss, A2B2A_cycle_loss, B2A2B_cycle_loss, A2A_id_loss, B2B_id_loss, A_d_loss, B_d_loss, ep):
-    """Temporary plot."""
-    # plot the loss
-    plt.figure()
-    plt.plot(iterations, A2B_g_loss, label='A2B_g_loss')
-    plt.plot(iterations, B2A_g_loss, label='B2A_g_loss')
-    plt.legend()
-    plt.title('Generator Losses')
-    plt.xlabel('Iterations')
-    plt.ylabel('Loss')
+    # Make the plot with the same format as the plot in main function
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(iterations, A2B_g_loss, label='A2B_g_loss', linewidth=1)
+    plt.plot(iterations, B2A_g_loss, label='B2A_g_loss', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('Generator Losses', fontsize='x-large')
+    plt.xlabel('Iterations', fontsize='large')
+    plt.ylabel('Loss', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.xlim(iterations[0], iterations[-1])
+    plt.xticks(np.arange(iterations[0], iterations[-1], 1000))
+    for i in range(100, 0, -1):
+        if max(max(A2B_g_loss), max(B2A_g_loss)) <= 0.25 * i:
+            if max(max(A2B_g_loss), max(B2A_g_loss)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
+    # Save as high-res image
     plt.savefig(py.join(g_loss_dir, f'generator_losses_{ep}.png'))
     plt.close()
 
-    plt.figure()
-    plt.plot(iterations, A2B2A_cycle_loss, label='A2B2A_cycle_loss')
-    plt.plot(iterations, B2A2B_cycle_loss, label='B2A2B_cycle_loss')
-    plt.legend()
-    plt.title('Cycle Losses')
-    plt.xlabel('Iterations')
-    plt.ylabel('Loss')
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(iterations, A2B2A_cycle_loss,
+             label='A2B2A_cycle_loss', linewidth=1)
+    plt.plot(iterations, B2A2B_cycle_loss,
+             label='B2A2B_cycle_loss', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('Cycle Losses', fontsize='x-large')
+    plt.xlabel('Iterations', fontsize='large')
+    plt.ylabel('Loss', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.xlim(iterations[0], iterations[-1])
+    plt.xticks(np.arange(iterations[0], iterations[-1], 1000))
+    for i in range(100, 0, -1):
+        if max(max(A2B2A_cycle_loss), max(B2A2B_cycle_loss)) <= 0.25 * i:
+            if max(max(A2B2A_cycle_loss), max(B2A2B_cycle_loss)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
     plt.savefig(py.join(cycle_loss_dir, f'cycle_losses_{ep}.png'))
     plt.close()
 
-    plt.figure()
-    plt.plot(iterations, A2A_id_loss, label='A2A_id_loss')
-    plt.plot(iterations, B2B_id_loss, label='B2B_id_loss')
-    plt.legend()
-    plt.title('Identity Losses')
-    plt.xlabel('Iterations')
-    plt.ylabel('Loss')
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(iterations, A2A_id_loss, label='A2A_id_loss', linewidth=1)
+    plt.plot(iterations, B2B_id_loss, label='B2B_id_loss', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('Identity Losses', fontsize='x-large')
+    plt.xlabel('Iterations', fontsize='large')
+    plt.ylabel('Loss', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.xlim(iterations[0], iterations[-1])
+    plt.xticks(np.arange(iterations[0], iterations[-1], (iterations[-1]-iterations[0])/10))
+    for i in range(100, 0, -1):
+        if max(max(A2A_id_loss), max(B2B_id_loss)) <= 0.25 * i:
+            if max(max(A2A_id_loss), max(B2B_id_loss)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
+    # Save as high-res image
     plt.savefig(py.join(id_loss_dir, f'identity_losses_{ep}.png'))
     plt.close()
 
-    plt.figure()
-    plt.plot(iterations, A_d_loss, label='A_d_loss')
-    plt.plot(iterations, B_d_loss, label='B_d_loss')
-    plt.legend()
-    plt.title('Discriminator Losses')
-    plt.xlabel('Iterations')
-    plt.ylabel('Loss')
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(iterations, A_d_loss, label='A_d_loss', linewidth=1)
+    plt.plot(iterations, B_d_loss, label='B_d_loss', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('Discriminator Losses', fontsize='x-large')
+    plt.xlabel('Iterations', fontsize='large')
+    plt.ylabel('Loss', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.xlim(iterations[0], iterations[-1])
+    plt.xticks(np.arange(iterations[0], iterations[-1], (iterations[-1]-iterations[0])/10))
+    for i in range(100, 0, -1):
+        if max(max(A_d_loss), max(B_d_loss)) <= 0.25 * i:
+            if max(max(A_d_loss), max(B_d_loss)) <= 0.25 * (i-1):
+                i -= 1
+                continue
+            plt.ylim(0, 0.25 * i)
+            plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+            break
+    # Save as high-res image
     plt.savefig(py.join(d_loss_dir, f'discriminator_losses_{ep}.png'))
     plt.close()
 
@@ -484,25 +440,56 @@ def save_psnr_and_ssim_data(iterations, ssim_A2B_value_list, psnr_A2B_value_list
 
 def temporary_plot_psnr_ssim(ssim_dir, psnr_dir, iterations, ssim_A2B_value_list, psnr_A2B_value_list, ssim_B2A_value_list, psnr_B2A_value_list, ep):
     """Plot the PSNR and SSIM data for each iteration."""
-    # 2 Plots for psnr/ssim data
-    plt.figure()
-    plt.plot(iterations, ssim_A2B_value_list, label='ssim_A2B')
-    plt.plot(iterations, ssim_B2A_value_list, label='ssim_B2A')
-    plt.legend()
-    plt.title('SSIM')
-    plt.xlabel('Iterations')
-    plt.ylabel('SSIM')
-    plt.savefig(py.join(ssim_dir, f'ssim_{ep}.png'))
+    # Make the plot with the same format as the plot in main function
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(iterations, psnr_A2B_value_list, label='psnr_A2B', linewidth=1)
+    plt.plot(iterations, psnr_B2A_value_list, label='psnr_B2A', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('PSNR', fontsize='x-large')
+    plt.xlabel('Iterations', fontsize='large')
+    plt.ylabel('PSNR', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.xlim(iterations[0], iterations[-1])
+    plt.xticks(np.arange(iterations[0], iterations[-1], 1000))
+    for i in range(1000, 0, -1):
+        if max(max(psnr_A2B_value_list), max(psnr_B2A_value_list)) <= 0.1 * i:
+            if max(max(psnr_A2B_value_list), max(psnr_B2A_value_list)) <= 0.1 * (i-1):
+                i -= 1
+                continue
+            min_psnr = int(min(min(psnr_A2B_value_list),
+                           min(psnr_B2A_value_list)))
+            min_psnr = min_psnr - min_psnr % 5
+            plt.ylim(min_psnr, 0.1 * i)
+            plt.yticks(np.arange(min_psnr, 0.1 * i, (0.1*i-min_psnr)/20))
+            break
+    # Save as high-res image
+    plt.savefig(py.join(psnr_dir, f'psnr_{ep}.png'))
     plt.close()
 
-    plt.figure()
-    plt.plot(iterations, psnr_A2B_value_list, label='psnr_A2B')
-    plt.plot(iterations, psnr_B2A_value_list, label='psnr_B2A')
-    plt.legend()
-    plt.title('PSNR')
-    plt.xlabel('Iterations')
-    plt.ylabel('PSNR')
-    plt.savefig(py.join(psnr_dir, f'psnr_{ep}.png'))
+    plt.figure(figsize=(20, 12))  # Increase figure size
+    plt.plot(iterations, ssim_A2B_value_list, label='ssim_A2B', linewidth=1)
+    plt.plot(iterations, ssim_B2A_value_list, label='ssim_B2A', linewidth=1)
+    plt.legend(fontsize='large')
+    plt.title('SSIM', fontsize='x-large')
+    plt.xlabel('Iterations', fontsize='large')
+    plt.ylabel('SSIM', fontsize='large')
+    plt.grid(which='major', color='black', linewidth=0.5)
+    plt.xlim(iterations[0], iterations[-1])
+    plt.xticks(np.arange(iterations[0], iterations[-1], 1000))
+    for i in range(1000, 0, -1):
+        if max(max(ssim_A2B_value_list), max(ssim_B2A_value_list)) <= 0.1 * i:
+            if max(max(ssim_A2B_value_list), max(ssim_B2A_value_list)) <= 0.1 * (i-1):
+                i -= 1
+                continue
+            min_ssim = int(min(min(ssim_A2B_value_list),
+                           min(ssim_B2A_value_list))*1000)
+            print(min_ssim)
+            min_ssim = min_ssim - min_ssim % 50
+            print(min_ssim)
+            plt.ylim(min_ssim/1000, 0.1 * i)
+            plt.yticks(np.arange(min_ssim/1000, 0.1 * i, (0.1*i-min_ssim/1000)/20))
+            break
+    plt.savefig(py.join(ssim_dir, f'ssim_{ep}.png'))  # Save as high-res image
     plt.close()
 
 
