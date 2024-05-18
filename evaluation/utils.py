@@ -9,20 +9,87 @@ from math import log10, sqrt
 import imlib as im
 import os
 import sys
+import scipy.io
+import scipy
 sys.path.insert(0, '../..')
 
 
 def compare_psnr(image1, image2):
     image1 = im.im2uint(image1)
     image2 = im.im2uint(image2)
-    psnr_value = psnr(image1, image2)
+    # psnr_value = psnr(image1, image2)
+    # Setting up the data range from 0 to 255
+    psnr_value = psnr(image1, image2, data_range=255)
+    
+    # Do not use the library for calculating
+    # mse = np.mean((image1 - image2) ** 2)
+    # if mse == 0:
+    #     return 100
+    # max_pixel = 255.0
+    # psnr_value = 20 * log10(max_pixel / sqrt(mse))
+
+    # # Save into mat file for 2 images for checking
+    # scipy.io.savemat('image1_psnr.mat', {'image1': image1})
+    # scipy.io.savemat('image2_psnr.mat', {'image2': image2})
     return psnr_value
 
 
 def compare_ssim(image1, image2):
     image1 = im.im2uint(image1)
     image2 = im.im2uint(image2)
-    ssim_value = ssim(image1, image2)
+
+    # ssim_value = ssim(image1, image2)
+    # Setting up the data range from 0 to 255
+    ssim_value = ssim(image1, image2, data_range=255)
+    
+    # # Do not use the library for calculating
+    # # The value of C1 and C2 are from the paper
+    # C1 = (0.01 * 255) ** 2
+    # C2 = (0.03 * 255) ** 2
+    # # Mean of the images
+    # mu1 = np.mean(image1)
+    # mu2 = np.mean(image2)
+    # # Variance of the images
+    # sigma1 = np.var(image1)
+    # sigma2 = np.var(image2)
+    # # Covariance of the images
+    # sigma12 = np.mean((image1 - mu1) * (image2 - mu2))
+    # # Calculate the SSIM value
+    # ssim_value = ((2 * mu1 * mu2 + C1) * (2 * sigma12 + C2)) / ((mu1 ** 2 + mu2 ** 2 + C1) * (sigma1 + sigma2 + C2))
+    
+    # Save into mat file for 2 images for checking
+    # scipy.io.savemat('image1_ssim.mat', {'image1': image1})
+    # scipy.io.savemat('image2_ssim.mat', {'image2': image2})
+    
+    # img1 = image1.astype(np.float64)
+    # img2 = image2.astype(np.float64)
+    # size = 11
+    # sigma = 1.5
+    # x, y = np.mgrid[-size//2 + 1:size//2 + 1, -size//2 + 1:size//2 + 1]
+    # g = np.exp(-((x**2 + y**2)/(2.0*sigma**2)))
+    # window = g/g.sum()
+    # K1 = 0.01
+    # K2 = 0.03
+    # L = 255 #bitdepth of image
+    # C1 = (K1*L)**2
+    # C2 = (K2*L)**2
+    # mu1 = signal.fftconvolve(window, img1, mode='valid')
+    # mu2 = signal.fftconvolve(window, img2, mode='valid')
+    # mu1_sq = mu1*mu1
+    # mu2_sq = mu2*mu2
+    # mu1_mu2 = mu1*mu2
+    # sigma1_sq = signal.fftconvolve(window, img1*img1, mode='valid') - mu1_sq
+    # sigma2_sq = signal.fftconvolve(window, img2*img2, mode='valid') - mu2_sq
+    # sigma12 = signal.fftconvolve(window, img1*img2, mode='valid') - mu1_mu2
+    # cs_map = False
+    # if cs_map:
+    #     return (((2*mu1_mu2 + C1)*(2*sigma12 + C2))/((mu1_sq + mu2_sq + C1)*
+    #                 (sigma1_sq + sigma2_sq + C2)), 
+    #             (2.0*sigma12 + C2)/(sigma1_sq + sigma2_sq + C2))
+    # else:
+    #     ssim_ndarray = ((2*mu1_mu2 + C1)*(2*sigma12 + C2))/((mu1_sq + mu2_sq + C1)*
+    #                 (sigma1_sq + sigma2_sq + C2))
+    #     return ssim_ndarray.mean()
     return ssim_value
 
 
