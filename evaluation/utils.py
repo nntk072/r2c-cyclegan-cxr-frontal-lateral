@@ -11,16 +11,17 @@ import os
 import sys
 import scipy.io
 import scipy
+import torch
+import samscore
 sys.path.insert(0, '../..')
 
-
+SAMScore_Evaluation = samscore.SAMScore(model_type = "vit_l" )
 def compare_psnr(image1, image2):
     image1 = im.im2uint(image1)
     image2 = im.im2uint(image2)
     # psnr_value = psnr(image1, image2)
     # Setting up the data range from 0 to 255
     psnr_value = psnr(image1, image2, data_range=255)
-    
     # Do not use the library for calculating
     # mse = np.mean((image1 - image2) ** 2)
     # if mse == 0:
@@ -104,8 +105,36 @@ def compute_psnr_ssim(img1, img2):
     return psnr, ssim
 
 
+def sams_score(img1, img2, SAMScore_Evaluation):
+    # source = torch.from_numpy(img1.transpose(2,0,1)).unsqueeze(0).float()
+    # source = torch.cat((source, source, source), dim=0)
+    
+    # target = torch.from_numpy(img2.transpose(2,0,1)).unsqueeze(0).float()
+    # target = torch.cat((target, target, target), dim=0)
+    
+    # sams = SAMScore_Evaluation.evaluation_from_torch(source, target)
+    # # Converting from Tensor.__format__ to float
+    # sams = sams.item()
+    # print(sams.type())
+    
+    # Using CUDA
+    source = torch.from_numpy(img2.transpose(2,0,1)).unsqueeze(0).float()
+    source = torch.cat((source, source, source), dim=0)
+    
+
+    target = torch.from_numpy(img1.transpose(2,0,1)).unsqueeze(0).float()
+    target = torch.cat((target, target, target), dim=0)
+    
+    sams = SAMScore_Evaluation.evaluation_from_torch(source, target)
+    # sams now is tensor([0.9875, 0.9875, 0.9875]), take 1 value only
+    sams = sams[0].item()
+    return sams
+
+
+
 def plot_images_A2B(A_i, A2B_i, B_i, save_dir, img_path, best_psnr=False, best_ssim=False):
     psnr, ssim = compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
+    # sams_score = sams_score(A2B_i.numpy(), B_i.numpy())
     plt.figure(figsize=(10, 4))
     plt.subplot(131)
     plt.imshow(im.dtype.im2uint(A_i.numpy()))
@@ -143,6 +172,7 @@ def plot_images_A2B(A_i, A2B_i, B_i, save_dir, img_path, best_psnr=False, best_s
 
 def plot_images_B2A(B_i, B2A_i, A_i, save_dir, img_path, best_psnr=False, best_ssim=False):
     psnr, ssim = compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+    # sams_score = sams_score(B2A_i.numpy(), A_i.numpy())
     plt.figure(figsize=(10, 4))
     plt.subplot(131)
     plt.imshow(im.dtype.im2uint(B_i.numpy()))
@@ -242,9 +272,11 @@ def plot_all_images_B2A(B_i, B2A_list, A_i, psnr_list, ssim_list, save_dir, img_
 # Same idea of plot_images_A2B and B2A, but combine them in one function
 
 
-def plot_images_A2B_B2A(A_i, A2B_i, B_i, B2A_i, save_dir, epoch):
+def plot_images_A2B_B2A(A_i, A2B_i, B_i, B2A_i, save_dir, epoch, SAMScore_Evaluation = None):
     psnr_A2B, ssim_A2B = compute_psnr_ssim(A2B_i.numpy(), B_i.numpy())
     psnr_B2A, ssim_B2A = compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+    # sams_score_A2B = sams_score(A2B_i.numpy(), B_i.numpy(), SAMScore_Evaluation)
+    # sams_score_B2A = sams_score(B2A_i.numpy(), A_i.numpy(), SAMScore_Evaluation)
     plt.figure(figsize=(10, 5))
     plt.subplot(221)
     plt.imshow(im.dtype.im2uint(A_i.numpy()))
@@ -252,6 +284,7 @@ def plot_images_A2B_B2A(A_i, A2B_i, B_i, B2A_i, save_dir, epoch):
     plt.axis('off')
     plt.subplot(222)
     plt.imshow(im.dtype.im2uint(A2B_i.numpy()))
+    # plt.title(f'A2B\nPSNR: {psnr_A2B:.4f}, SSIM: {ssim_A2B:.4f}, SAMScore: {sams_score_A2B:.4f}')
     plt.title(f'A2B\nPSNR: {psnr_A2B:.4f}, SSIM: {ssim_A2B:.4f}')
     plt.axis('off')
     plt.subplot(223)
@@ -260,6 +293,7 @@ def plot_images_A2B_B2A(A_i, A2B_i, B_i, B2A_i, save_dir, epoch):
     plt.axis('off')
     plt.subplot(224)
     plt.imshow(im.dtype.im2uint(B2A_i.numpy()))
+    # plt.title(f'B2A\nPSNR: {psnr_B2A:.4f}, SSIM: {ssim_B2A:.4f}, SAMScore: {sams_score_B2A:.4f}')
     plt.title(f'B2A\nPSNR: {psnr_B2A:.4f}, SSIM: {ssim_B2A:.4f}')
     plt.axis('off')
     plt.tight_layout()
