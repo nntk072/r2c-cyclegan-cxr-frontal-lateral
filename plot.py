@@ -437,6 +437,19 @@ def save_psnr_and_ssim_data(iterations, ssim_A2B_value_list, psnr_A2B_value_list
 
     # np.save(f'output/{method}/plot_data/{name}/iterations_{ep}.npy', iterations)
 
+def save_psnr_and_ssim_data_temporary(iterations, ssim_A2B_value_list, psnr_A2B_value_list, ssim_B2A_value_list, psnr_B2A_value_list, ep, name, method):
+    """Save the PSNR and SSIM data for each iteration into a separate file."""
+    np.save(
+        f'output/{method}/plot_data_new_calculation/{name}/ssim_A2B_value_list_{ep}.npy', ssim_A2B_value_list)
+    np.save(
+        f'output/{method}/plot_data_new_calculation/{name}/psnr_A2B_value_list_{ep}.npy', psnr_A2B_value_list
+    )
+    np.save(
+        f'output/{method}/plot_data_new_calculation/{name}/ssim_B2A_value_list_{ep}.npy', ssim_B2A_value_list)
+    np.save(
+        f'output/{method}/plot_data_new_calculation/{name}/psnr_B2A_value_list_{ep}.npy', psnr_B2A_value_list)
+
+    np.save(f'output/{method}/plot_data_new_calculation/{name}/iterations_{ep}.npy', iterations)
 
 def temporary_plot_psnr_ssim(ssim_dir, psnr_dir, iterations, ssim_A2B_value_list, psnr_A2B_value_list, ssim_B2A_value_list, psnr_B2A_value_list, ep):
     """Plot the PSNR and SSIM data for each iteration."""

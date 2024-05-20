@@ -22,18 +22,19 @@ def compare_psnr(image1, image2):
     # psnr_value = psnr(image1, image2)
     # Setting up the data range from 0 to 255
     psnr_value = psnr(image1, image2, data_range=255)
-    # Do not use the library for calculating
-    # mse = np.mean((image1 - image2) ** 2)
-    # if mse == 0:
-    #     return 100
-    # max_pixel = 255.0
-    # psnr_value = 20 * log10(max_pixel / sqrt(mse))
-
-    # # Save into mat file for 2 images for checking
-    # scipy.io.savemat('image1_psnr.mat', {'image1': image1})
-    # scipy.io.savemat('image2_psnr.mat', {'image2': image2})
     return psnr_value
 
+def compare_psnr_mathematical(image1, image2):
+    image1 = im.im2uint(image1)
+    image2 = im.im2uint(image2)
+    mse = np.mean((image1 - image2) ** 2)
+    if mse == 0:
+        return 100
+    max_pixel = 255.0
+    psnr_value = 20 * log10(max_pixel / sqrt(mse))
+    # Converting to numpy.float64
+    psnr_value = np.float64(psnr_value)
+    return psnr_value
 
 def compare_ssim(image1, image2):
     image1 = im.im2uint(image1)
@@ -93,6 +94,24 @@ def compare_ssim(image1, image2):
     #     return ssim_ndarray.mean()
     return ssim_value
 
+def compare_ssim_mathematical(image1, image2):
+    image1 = im.im2uint(image1)
+    image2 = im.im2uint(image2)
+    K1 = 0.01
+    K2 = 0.03
+    L = 255
+    C1 = (K1 * L) ** 2
+    C2 = (K2 * L) ** 2
+    mu1 = np.mean(image1)
+    mu2 = np.mean(image2)
+    sigma1 = np.var(image1)
+    sigma2 = np.var(image2)
+    sigma12 = np.mean((image1 - mu1) * (image2 - mu2))
+    ssim_value = ((2 * mu1 * mu2 + C1) * (2 * sigma12 + C2)) / ((mu1 ** 2 + mu2 ** 2 + C1) * (sigma1 + sigma2 + C2)
+    )
+    # Converting to numpy.float64
+    ssim_value = np.float64(ssim_value)
+    return ssim_value
 
 def compute_psnr_ssim(img1, img2):
     # Check if the images are in the correct format
@@ -104,6 +123,15 @@ def compute_psnr_ssim(img1, img2):
     ssim = compare_ssim(img1, img2)
     return psnr, ssim
 
+def compute_psnr_ssim_mathematical(img1, img2):
+    # Check if the images are in the correct format
+    if len(img1.shape) == 3 and img1.shape[2] == 3:
+        img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    if len(img2.shape) == 3 and img2.shape[2] == 3:
+        img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    psnr = compare_psnr_mathematical(img1, img2)
+    ssim = compare_ssim_mathematical(img1, img2)
+    return psnr, ssim
 
 def sams_score(img1, img2, SAMScore_Evaluation):
     # source = torch.from_numpy(img1.transpose(2,0,1)).unsqueeze(0).float()

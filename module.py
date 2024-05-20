@@ -241,18 +241,18 @@ def OpDiscriminator(input_shape=(256, 256, 3),
     h = inputs = keras.Input(shape=input_shape)
 
     h = Oper2D(dim, 4, strides=2, q=q, padding='same')(h)
-    h = tf.nn.leaky_relu(h, alpha=0.2)
+    h = tf.nn.tanh(h)
 
     for _ in range(n_downsamplings - 1):
         dim = min(dim * 2, dim_ * 8)
         h = Oper2D(dim, 4, strides=2, q=q, padding='same', use_bias=False)(h)
         h = Norm()(h)
-        h = tf.nn.leaky_relu(h, alpha=0.2)
+        h = tf.nn.tanh(h)
 
     dim = min(dim * 2, dim_ * 8)
     h = Oper2D(dim, 4, strides=1, q=q, padding='same', use_bias=False)(h)
     h = Norm()(h)
-    h = tf.nn.leaky_relu(h, alpha=0.2)
+    h = tf.nn.tanh(h)
 
     h = Oper2D(1, 4, strides=1, q=q, padding='same')(h)
 

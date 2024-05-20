@@ -5,6 +5,7 @@ import tensorflow as tf
 import tf2lib as tl
 import matplotlib.pyplot as plt
 
+import time
 import sys
 import data
 import module
@@ -89,302 +90,271 @@ elif args.method == 'operational_unet':
         input_shape=(args.crop_size, args.crop_size, 3), q=args.q)
 else:
     raise NotImplementedError
-# A2B_g_loss_list = np.array([])
-# B2A_g_loss_list = np.array([])
-# A2B2A_cycle_loss_list = np.array([])
-# B2A2B_cycle_loss_list = np.array([])
-# A2A_id_loss_list = np.array([])
-# B2B_id_loss_list = np.array([])
-# A_d_loss_list = np.array([])
-# B_d_loss_list = np.array([])
-# ssim_A2B_list = np.array([])
-# psnr_A2B_list = np.array([])
-# ssim_B2A_list = np.array([])
-# psnr_B2A_list = np.array([])
-# ep_list = np.array([])
-# for ep in range(0, 1000):
-#     A2B_g_loss = np.load(
-#         f'output/{method}/plot_data/training/loss_A2B_g_loss_{ep}.npy')
-#     B2A_g_loss = np.load(
-#         f'output/{method}/plot_data/training/loss_B2A_g_loss_{ep}.npy')
-#     A2B2A_cycle_loss = np.load(
-#         f'output/{method}/plot_data/training/loss_A2B2A_cycle_loss_{ep}.npy')
-#     B2A2B_cycle_loss = np.load(
-#         f'output/{method}/plot_data/training/loss_B2A2B_cycle_loss_{ep}.npy')
-#     A2A_id_loss = np.load(
-#         f'output/{method}/plot_data/training/loss_A2A_id_loss_{ep}.npy')
-#     B2B_id_loss = np.load(
-#         f'output/{method}/plot_data/training/loss_B2B_id_loss_{ep}.npy')
-#     A_d_loss = np.load(
-#         f'output/{method}/plot_data/training/loss_A_d_loss_{ep}.npy')
-#     B_d_loss = np.load(
-#         f'output/{method}/plot_data/training/loss_B_d_loss_{ep}.npy')
-#     ssim_A2B = np.load(
-#         f'output/{method}/plot_data/training/ssim_A2B_value_list_{ep}.npy')
-#     psnr_A2B = np.load(
-#         f'output/{method}/plot_data/training/psnr_A2B_value_list_{ep}.npy')
-#     ssim_B2A = np.load(
-#         f'output/{method}/plot_data/training/ssim_B2A_value_list_{ep}.npy')
-#     psnr_B2A = np.load(
-#         f'output/{method}/plot_data/training/psnr_B2A_value_list_{ep}.npy')
-#     iterations = np.load(
-#         f'output/{method}/plot_data/training/iterations_{ep}.npy')
+A2B_g_loss_list = np.array([])
+B2A_g_loss_list = np.array([])
+A2B2A_cycle_loss_list = np.array([])
+B2A2B_cycle_loss_list = np.array([])
+A2A_id_loss_list = np.array([])
+B2B_id_loss_list = np.array([])
+A_d_loss_list = np.array([])
+B_d_loss_list = np.array([])
+ssim_A2B_list = np.array([])
+psnr_A2B_list = np.array([])
+ssim_B2A_list = np.array([])
+psnr_B2A_list = np.array([])
+ep_list = np.array([])
+for ep in range(0, 1000):
+    A2B_g_loss = np.load(
+        f'output/{method}/plot_data/training/loss_A2B_g_loss_{ep}.npy')
+    B2A_g_loss = np.load(
+        f'output/{method}/plot_data/training/loss_B2A_g_loss_{ep}.npy')
+    A2B2A_cycle_loss = np.load(
+        f'output/{method}/plot_data/training/loss_A2B2A_cycle_loss_{ep}.npy')
+    B2A2B_cycle_loss = np.load(
+        f'output/{method}/plot_data/training/loss_B2A2B_cycle_loss_{ep}.npy')
+    A2A_id_loss = np.load(
+        f'output/{method}/plot_data/training/loss_A2A_id_loss_{ep}.npy')
+    B2B_id_loss = np.load(
+        f'output/{method}/plot_data/training/loss_B2B_id_loss_{ep}.npy')
+    A_d_loss = np.load(
+        f'output/{method}/plot_data/training/loss_A_d_loss_{ep}.npy')
+    B_d_loss = np.load(
+        f'output/{method}/plot_data/training/loss_B_d_loss_{ep}.npy')
+    ssim_A2B = np.load(
+        f'output/{method}/plot_data/training/ssim_A2B_value_list_{ep}.npy')
+    psnr_A2B = np.load(
+        f'output/{method}/plot_data/training/psnr_A2B_value_list_{ep}.npy')
+    ssim_B2A = np.load(
+        f'output/{method}/plot_data/training/ssim_B2A_value_list_{ep}.npy')
+    psnr_B2A = np.load(
+        f'output/{method}/plot_data/training/psnr_B2A_value_list_{ep}.npy')
+    iterations = np.load(
+        f'output/{method}/plot_data/training/iterations_{ep}.npy')
 
-#     # Calculate the mean of the loss data for each iteration and save into the list
-#     A2B_g_loss_list = np.append(A2B_g_loss_list, np.mean(A2B_g_loss))
-#     B2A_g_loss_list = np.append(B2A_g_loss_list, np.mean(B2A_g_loss))
-#     A2B2A_cycle_loss_list = np.append(
-#         A2B2A_cycle_loss_list, np.mean(A2B2A_cycle_loss))
-#     B2A2B_cycle_loss_list = np.append(
-#         B2A2B_cycle_loss_list, np.mean(B2A2B_cycle_loss))
-#     A2A_id_loss_list = np.append(A2A_id_loss_list, np.mean(A2A_id_loss))
-#     B2B_id_loss_list = np.append(B2B_id_loss_list, np.mean(B2B_id_loss))
-#     A_d_loss_list = np.append(A_d_loss_list, np.mean(A_d_loss))
-#     B_d_loss_list = np.append(B_d_loss_list, np.mean(B_d_loss))
-#     ssim_A2B_list = np.append(ssim_A2B_list, np.mean(ssim_A2B))
-#     psnr_A2B_list = np.append(psnr_A2B_list, np.mean(psnr_A2B))
-#     ssim_B2A_list = np.append(ssim_B2A_list, np.mean(ssim_B2A))
-#     psnr_B2A_list = np.append(psnr_B2A_list, np.mean(psnr_B2A))
-#     ep_list = np.append(ep_list, ep)
+    # Calculate the mean of the loss data for each iteration and save into the list
+    A2B_g_loss_list = np.append(A2B_g_loss_list, np.mean(A2B_g_loss))
+    B2A_g_loss_list = np.append(B2A_g_loss_list, np.mean(B2A_g_loss))
+    A2B2A_cycle_loss_list = np.append(
+        A2B2A_cycle_loss_list, np.mean(A2B2A_cycle_loss))
+    B2A2B_cycle_loss_list = np.append(
+        B2A2B_cycle_loss_list, np.mean(B2A2B_cycle_loss))
+    A2A_id_loss_list = np.append(A2A_id_loss_list, np.mean(A2A_id_loss))
+    B2B_id_loss_list = np.append(B2B_id_loss_list, np.mean(B2B_id_loss))
+    A_d_loss_list = np.append(A_d_loss_list, np.mean(A_d_loss))
+    B_d_loss_list = np.append(B_d_loss_list, np.mean(B_d_loss))
+    ssim_A2B_list = np.append(ssim_A2B_list, np.mean(ssim_A2B))
+    psnr_A2B_list = np.append(psnr_A2B_list, np.mean(psnr_A2B))
+    ssim_B2A_list = np.append(ssim_B2A_list, np.mean(ssim_B2A))
+    psnr_B2A_list = np.append(psnr_B2A_list, np.mean(psnr_B2A))
+    ep_list = np.append(ep_list, ep)
 
 
-# # Do the same with the valid
-# A2B_g_loss_list_valid = np.array([])
-# B2A_g_loss_list_valid = np.array([])
-# A2B2A_cycle_loss_list_valid = np.array([])
-# B2A2B_cycle_loss_list_valid = np.array([])
-# A2A_id_loss_list_valid = np.array([])
-# B2B_id_loss_list_valid = np.array([])
-# A_d_loss_list_valid = np.array([])
-# B_d_loss_list_valid = np.array([])
-# ssim_A2B_list_valid = np.array([])
-# psnr_A2B_list_valid = np.array([])
-# ssim_B2A_list_valid = np.array([])
-# psnr_B2A_list_valid = np.array([])
+# Do the same with the valid
+A2B_g_loss_list_valid = np.array([])
+B2A_g_loss_list_valid = np.array([])
+A2B2A_cycle_loss_list_valid = np.array([])
+B2A2B_cycle_loss_list_valid = np.array([])
+A2A_id_loss_list_valid = np.array([])
+B2B_id_loss_list_valid = np.array([])
+A_d_loss_list_valid = np.array([])
+B_d_loss_list_valid = np.array([])
+ssim_A2B_list_valid = np.array([])
+psnr_A2B_list_valid = np.array([])
+ssim_B2A_list_valid = np.array([])
+psnr_B2A_list_valid = np.array([])
 
-# ep_list_valid = np.array([])
-# for ep in range(0, 850):  # the name of the folder is validation
-#     A2B_g_loss = np.load(
-#         f'output/{method}/plot_data/validation/loss_A2B_g_loss_{ep}.npy')
-#     B2A_g_loss = np.load(
-#         f'output/{method}/plot_data/validation/loss_B2A_g_loss_{ep}.npy')
-#     A2B2A_cycle_loss = np.load(
-#         f'output/{method}/plot_data/validation/loss_A2B2A_cycle_loss_{ep}.npy')
-#     B2A2B_cycle_loss = np.load(
-#         f'output/{method}/plot_data/validation/loss_B2A2B_cycle_loss_{ep}.npy')
-#     A2A_id_loss = np.load(
-#         f'output/{method}/plot_data/validation/loss_A2A_id_loss_{ep}.npy')
-#     B2B_id_loss = np.load(
-#         f'output/{method}/plot_data/validation/loss_B2B_id_loss_{ep}.npy')
-#     A_d_loss = np.load(
-#         f'output/{method}/plot_data/validation/loss_A_d_loss_{ep}.npy')
-#     B_d_loss = np.load(
-#         f'output/{method}/plot_data/validation/loss_B_d_loss_{ep}.npy')
-#     ssim_A2B = np.load(
-#         f'output/{method}/plot_data/validation/ssim_A2B_value_list_{ep}.npy')
-#     psnr_A2B = np.load(
-#         f'output/{method}/plot_data/validation/psnr_A2B_value_list_{ep}.npy')
-#     ssim_B2A = np.load(
-#         f'output/{method}/plot_data/validation/ssim_B2A_value_list_{ep}.npy')
-#     psnr_B2A = np.load(
-#         f'output/{method}/plot_data/validation/psnr_B2A_value_list_{ep}.npy')
-#     iterations = np.load(
-#         f'output/{method}/plot_data/validation/iterations_{ep}.npy')
+ep_list_valid = np.array([])
+for ep in range(0, 1000):  # the name of the folder is validation
+    A2B_g_loss = np.load(
+        f'output/{method}/plot_data/validation/loss_A2B_g_loss_{ep}.npy')
+    B2A_g_loss = np.load(
+        f'output/{method}/plot_data/validation/loss_B2A_g_loss_{ep}.npy')
+    A2B2A_cycle_loss = np.load(
+        f'output/{method}/plot_data/validation/loss_A2B2A_cycle_loss_{ep}.npy')
+    B2A2B_cycle_loss = np.load(
+        f'output/{method}/plot_data/validation/loss_B2A2B_cycle_loss_{ep}.npy')
+    A2A_id_loss = np.load(
+        f'output/{method}/plot_data/validation/loss_A2A_id_loss_{ep}.npy')
+    B2B_id_loss = np.load(
+        f'output/{method}/plot_data/validation/loss_B2B_id_loss_{ep}.npy')
+    A_d_loss = np.load(
+        f'output/{method}/plot_data/validation/loss_A_d_loss_{ep}.npy')
+    B_d_loss = np.load(
+        f'output/{method}/plot_data/validation/loss_B_d_loss_{ep}.npy')
+    ssim_A2B = np.load(
+        f'output/{method}/plot_data/validation/ssim_A2B_value_list_{ep}.npy')
+    psnr_A2B = np.load(
+        f'output/{method}/plot_data/validation/psnr_A2B_value_list_{ep}.npy')
+    ssim_B2A = np.load(
+        f'output/{method}/plot_data/validation/ssim_B2A_value_list_{ep}.npy')
+    psnr_B2A = np.load(
+        f'output/{method}/plot_data/validation/psnr_B2A_value_list_{ep}.npy')
+    iterations = np.load(
+        f'output/{method}/plot_data/validation/iterations_{ep}.npy')
 
-#     # Calculate the mean of the loss data for each iteration and save into the list
-#     A2B_g_loss_list_valid = np.append(
-#         A2B_g_loss_list_valid, np.mean(A2B_g_loss))
-#     B2A_g_loss_list_valid = np.append(
-#         B2A_g_loss_list_valid, np.mean(B2A_g_loss))
-#     A2B2A_cycle_loss_list_valid = np.append(
-#         A2B2A_cycle_loss_list_valid, np.mean(A2B2A_cycle_loss))
-#     B2A2B_cycle_loss_list_valid = np.append(
-#         B2A2B_cycle_loss_list_valid, np.mean(B2A2B_cycle_loss))
-#     A2A_id_loss_list_valid = np.append(
-#         A2A_id_loss_list_valid, np.mean(A2A_id_loss))
-#     B2B_id_loss_list_valid = np.append(
-#         B2B_id_loss_list_valid, np.mean(B2B_id_loss))
-#     A_d_loss_list_valid = np.append(A_d_loss_list_valid, np.mean(A_d_loss))
-#     B_d_loss_list_valid = np.append(B_d_loss_list_valid, np.mean(B_d_loss))
-#     ssim_A2B_list_valid = np.append(ssim_A2B_list_valid, np.mean(ssim_A2B))
-#     psnr_A2B_list_valid = np.append(psnr_A2B_list_valid, np.mean(psnr_A2B))
-#     ssim_B2A_list_valid = np.append(ssim_B2A_list_valid, np.mean(ssim_B2A))
-#     psnr_B2A_list_valid = np.append(psnr_B2A_list_valid, np.mean(psnr_B2A))
-#     ep_list_valid = np.append(ep_list_valid, ep)
+    # Calculate the mean of the loss data for each iteration and save into the list
+    A2B_g_loss_list_valid = np.append(
+        A2B_g_loss_list_valid, np.mean(A2B_g_loss))
+    B2A_g_loss_list_valid = np.append(
+        B2A_g_loss_list_valid, np.mean(B2A_g_loss))
+    A2B2A_cycle_loss_list_valid = np.append(
+        A2B2A_cycle_loss_list_valid, np.mean(A2B2A_cycle_loss))
+    B2A2B_cycle_loss_list_valid = np.append(
+        B2A2B_cycle_loss_list_valid, np.mean(B2A2B_cycle_loss))
+    A2A_id_loss_list_valid = np.append(
+        A2A_id_loss_list_valid, np.mean(A2A_id_loss))
+    B2B_id_loss_list_valid = np.append(
+        B2B_id_loss_list_valid, np.mean(B2B_id_loss))
+    A_d_loss_list_valid = np.append(A_d_loss_list_valid, np.mean(A_d_loss))
+    B_d_loss_list_valid = np.append(B_d_loss_list_valid, np.mean(B_d_loss))
+    ssim_A2B_list_valid = np.append(ssim_A2B_list_valid, np.mean(ssim_A2B))
+    psnr_A2B_list_valid = np.append(psnr_A2B_list_valid, np.mean(psnr_A2B))
+    ssim_B2A_list_valid = np.append(ssim_B2A_list_valid, np.mean(ssim_B2A))
+    psnr_B2A_list_valid = np.append(psnr_B2A_list_valid, np.mean(psnr_B2A))
+    ep_list_valid = np.append(ep_list_valid, ep)
 
-# # Calculate the adversarial loss
-# A2B_adversarial_loss = np.add(A2B_g_loss_list, A_d_loss_list)
-# B2A_adversarial_loss = np.add(B2A_g_loss_list, B_d_loss_list)
-# A2B_adversarial_loss_valid = np.add(A2B_g_loss_list_valid, A_d_loss_list_valid)
-# B2A_adversarial_loss_valid = np.add(B2A_g_loss_list_valid, B_d_loss_list_valid)
+# Calculate the adversarial loss
+A2B_adversarial_loss = np.add(A2B_g_loss_list, A_d_loss_list)
+B2A_adversarial_loss = np.add(B2A_g_loss_list, B_d_loss_list)
+A2B_adversarial_loss_valid = np.add(A2B_g_loss_list_valid, A_d_loss_list_valid)
+B2A_adversarial_loss_valid = np.add(B2A_g_loss_list_valid, B_d_loss_list_valid)
 
-# # Calculate the total loss, remember tot ake the cycle_loss_weight from args
-# A2B_total_loss = np.add(A2B_adversarial_loss,
-#                         np.multiply(A2B2A_cycle_loss_list, args.cycle_loss_weight))
-# B2A_total_loss = np.add(B2A_adversarial_loss,
-#                         np.multiply(B2A2B_cycle_loss_list, args.cycle_loss_weight))
-# A2B_total_loss_valid = np.add(A2B_adversarial_loss_valid,
-#                               np.multiply(A2B2A_cycle_loss_list_valid, args.cycle_loss_weight))
-# B2A_total_loss_valid = np.add(B2A_adversarial_loss_valid,
-#                               np.multiply(B2A2B_cycle_loss_list_valid, args.cycle_loss_weight))
-# total_loss = np.add(A2B_total_loss, B2A_total_loss)
-# total_loss_valid = np.add(A2B_total_loss_valid, B2A_total_loss_valid)
+# Calculate the total loss, remember tot ake the cycle_loss_weight from args
+A2B_total_loss = np.add(A2B_adversarial_loss,
+                        np.multiply(A2B2A_cycle_loss_list, args.cycle_loss_weight))
+B2A_total_loss = np.add(B2A_adversarial_loss,
+                        np.multiply(B2A2B_cycle_loss_list, args.cycle_loss_weight))
+A2B_total_loss_valid = np.add(A2B_adversarial_loss_valid,
+                              np.multiply(A2B2A_cycle_loss_list_valid, args.cycle_loss_weight))
+B2A_total_loss_valid = np.add(B2A_adversarial_loss_valid,
+                              np.multiply(B2A2B_cycle_loss_list_valid, args.cycle_loss_weight))
+total_loss = np.add(A2B_total_loss, B2A_total_loss)
+total_loss_valid = np.add(A2B_total_loss_valid, B2A_total_loss_valid)
 
-# # Plot the Adversarial and Total loss in one plot with the same format as
+# Plot the Adversarial and Total loss in one plot with the same format as
+plt.figure(figsize=(20, 12))  # Increase figure size
+plt.plot(ep_list, A2B_adversarial_loss,
+         label='A2B_adversarial_loss_training', linewidth=1)
+plt.plot(ep_list, B2A_adversarial_loss,
+         label='B2A_adversarial_loss_training', linewidth=1)
+plt.plot(ep_list_valid, A2B_adversarial_loss_valid,
+         label='A2B_adversarial_loss_valid', linewidth=1)
+plt.plot(ep_list_valid, B2A_adversarial_loss_valid,
+         label='B2A_adversarial_loss_valid', linewidth=1)
+plt.plot(ep_list, total_loss, label='Total_loss_training', linewidth=1)
+plt.plot(ep_list_valid, total_loss_valid,
+            label='Total_loss_valid', linewidth=1)
+plt.legend(fontsize='large')
+plt.xlabel('Epochs', fontsize='large')
+plt.ylabel('Loss', fontsize='large')
+plt.grid(which='major', color='black', linewidth=0.5)
+plt.xlim(ep_list[0], ep_list[-1])
+plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
+for i in range(1000, 0, -1):
+    if max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) <= 0.25 * i:
+        if max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) <= 0.25 * (i-1):
+            i -= 1
+            continue
+        plt.ylim(0, 0.25 * i)
+        plt.yticks(np.arange(0, 0.25 * i, 0.25*i/20))
+        break
+# Save as high-res image
+plt.savefig(f'output/{method}/losses.png')
+plt.close()
+
 # plt.figure(figsize=(20, 12))  # Increase figure size
-# plt.plot(ep_list, A2B_adversarial_loss,
-#          label='A2B_adversarial_loss_training', linewidth=1)
-# plt.plot(ep_list, B2A_adversarial_loss,
-#          label='B2A_adversarial_loss_training', linewidth=1)
-# plt.plot(ep_list_valid, A2B_adversarial_loss_valid,
-#          label='A2B_adversarial_loss_valid', linewidth=1)
-# plt.plot(ep_list_valid, B2A_adversarial_loss_valid,
-#          label='B2A_adversarial_loss_valid', linewidth=1)
 # plt.plot(ep_list, total_loss, label='Total_loss_training', linewidth=1)
 # plt.plot(ep_list_valid, total_loss_valid,
 #             label='Total_loss_valid', linewidth=1)
 # plt.legend(fontsize='large')
+# plt.title('Total Losses', fontsize='x-large')
 # plt.xlabel('Epochs', fontsize='large')
 # plt.ylabel('Loss', fontsize='large')
 # plt.grid(which='major', color='black', linewidth=0.5)
 # plt.xlim(ep_list[0], ep_list[-1])
 # plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-# # if max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 0.25:
-# #     plt.ylim(0, 0.25)
-# #     plt.yticks(np.arange(0, 0.25, 0.025))
-# # elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 0.5:
-# #     plt.ylim(0, 0.5)
-# #     plt.yticks(np.arange(0, 0.5, 0.05))
-# # elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 0.75:
-# #     plt.ylim(0, 0.75)
-# #     plt.yticks(np.arange(0, 0.75, 0.05))
-# # elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) < 1:
-# #     plt.ylim(0, 1)
-# #     plt.yticks(np.arange(0, 1, 0.05))
-# # elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)) > 4:
-# #     plt.ylim(0, 4)
-# #     plt.yticks(np.arange(0, 4, 0.2))
-# # else:
-# #     plt.ylim(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss),
-# #                     max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)))
-# #     plt.yticks(np.arange(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(
-# #         A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid)), 0.1))
-# # Adding the total loss to if function
-# if max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) < 0.25:
+# if max(max(total_loss), max(total_loss_valid)) < 0.25:
 #     plt.ylim(0, 0.25)
 #     plt.yticks(np.arange(0, 0.25, 0.025))
-# elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) < 0.5:
+# elif max(max(total_loss), max(total_loss_valid)) < 0.5:
 #     plt.ylim(0, 0.5)
 #     plt.yticks(np.arange(0, 0.5, 0.05))
-# elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) < 0.75:
+# elif max(max(total_loss), max(total_loss_valid)) < 0.75:
 #     plt.ylim(0, 0.75)
 #     plt.yticks(np.arange(0, 0.75, 0.05))
-# elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) < 1:
+# elif max(max(total_loss), max(total_loss_valid)) < 1:
 #     plt.ylim(0, 1)
 #     plt.yticks(np.arange(0, 1, 0.05))
-# elif max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)) > 4:
+# elif max(max(total_loss), max(total_loss_valid)) > 4:
 #     plt.ylim(0, 4)
 #     plt.yticks(np.arange(0, 4, 0.2))
 # else:
-#     plt.ylim(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)))
-#     plt.yticks(np.arange(0, max(max(A2B_adversarial_loss), max(B2A_adversarial_loss), max(A2B_adversarial_loss_valid), max(B2A_adversarial_loss_valid), max(total_loss), max(total_loss_valid)), 0.1))
-# # Save as high-res image
-# plt.savefig(f'output/{method}/losses.png')
+#     plt.ylim(0, max(max(total_loss), max(total_loss_valid)))
+#     plt.yticks(np.arange(0, max(max(total_loss), max(total_loss_valid)), 0.2))
+# plt.savefig(f'output/{method}/total_losses.png')  # Save as high-res image
 # plt.close()
 
-# # plt.figure(figsize=(20, 12))  # Increase figure size
-# # plt.plot(ep_list, total_loss, label='Total_loss_training', linewidth=1)
-# # plt.plot(ep_list_valid, total_loss_valid,
-# #             label='Total_loss_valid', linewidth=1)
-# # plt.legend(fontsize='large')
-# # plt.title('Total Losses', fontsize='x-large')
-# # plt.xlabel('Epochs', fontsize='large')
-# # plt.ylabel('Loss', fontsize='large')
-# # plt.grid(which='major', color='black', linewidth=0.5)
-# # plt.xlim(ep_list[0], ep_list[-1])
-# # plt.xticks(np.arange(ep_list[0], ep_list[-1], 50))
-# # if max(max(total_loss), max(total_loss_valid)) < 0.25:
-# #     plt.ylim(0, 0.25)
-# #     plt.yticks(np.arange(0, 0.25, 0.025))
-# # elif max(max(total_loss), max(total_loss_valid)) < 0.5:
-# #     plt.ylim(0, 0.5)
-# #     plt.yticks(np.arange(0, 0.5, 0.05))
-# # elif max(max(total_loss), max(total_loss_valid)) < 0.75:
-# #     plt.ylim(0, 0.75)
-# #     plt.yticks(np.arange(0, 0.75, 0.05))
-# # elif max(max(total_loss), max(total_loss_valid)) < 1:
-# #     plt.ylim(0, 1)
-# #     plt.yticks(np.arange(0, 1, 0.05))
-# # elif max(max(total_loss), max(total_loss_valid)) > 4:
-# #     plt.ylim(0, 4)
-# #     plt.yticks(np.arange(0, 4, 0.2))
-# # else:
-# #     plt.ylim(0, max(max(total_loss), max(total_loss_valid)))
-# #     plt.yticks(np.arange(0, max(max(total_loss), max(total_loss_valid)), 0.2))
-# # plt.savefig(f'output/{method}/total_losses.png')  # Save as high-res image
-# # plt.close()
+# Choosing the epoch with the lowest adversarial loss valid to plot the result
+lowest_A2B_adversarial_loss_valid = np.min(A2B_adversarial_loss_valid)
+lowest_B2A_adversarial_loss_valid = np.min(B2A_adversarial_loss_valid)
+lowest_A2B_adversarial_loss_valid_index = np.where(
+    A2B_adversarial_loss_valid == lowest_A2B_adversarial_loss_valid)
+lowest_B2A_adversarial_loss_valid_index = np.where(
+    B2A_adversarial_loss_valid == lowest_B2A_adversarial_loss_valid)
 
-# # Choosing the epoch with the lowest adversarial loss valid to plot the result
-# lowest_A2B_adversarial_loss_valid = np.min(A2B_adversarial_loss_valid)
-# lowest_B2A_adversarial_loss_valid = np.min(B2A_adversarial_loss_valid)
-# lowest_A2B_adversarial_loss_valid_index = np.where(
-#     A2B_adversarial_loss_valid == lowest_A2B_adversarial_loss_valid)
-# lowest_B2A_adversarial_loss_valid_index = np.where(
-#     B2A_adversarial_loss_valid == lowest_B2A_adversarial_loss_valid)
-
-# # Choosing the epoch with the lowest total loss valid to plot the result
-# lowest_A2B_total_loss_valid = np.min(A2B_total_loss_valid)
-# lowest_B2A_total_loss_valid = np.min(B2A_total_loss_valid)
-# lowest_A2B_total_loss_valid_index = np.where(
-#     A2B_total_loss_valid == lowest_A2B_total_loss_valid)
-# lowest_B2A_total_loss_valid_index = np.where(
-#     B2A_total_loss_valid == lowest_B2A_total_loss_valid)
-# lowest_total_loss_valid = np.min(total_loss_valid)
-# lowest_total_loss_valid_index = np.where(
-#     total_loss_valid == lowest_total_loss_valid)
+# Choosing the epoch with the lowest total loss valid to plot the result
+lowest_A2B_total_loss_valid = np.min(A2B_total_loss_valid)
+lowest_B2A_total_loss_valid = np.min(B2A_total_loss_valid)
+lowest_A2B_total_loss_valid_index = np.where(
+    A2B_total_loss_valid == lowest_A2B_total_loss_valid)
+lowest_B2A_total_loss_valid_index = np.where(
+    B2A_total_loss_valid == lowest_B2A_total_loss_valid)
+lowest_total_loss_valid = np.min(total_loss_valid)
+lowest_total_loss_valid_index = np.where(
+    total_loss_valid == lowest_total_loss_valid)
 
 
-# # Choosing the epoch with the lowest cycle loss valid to plot the result
-# lowest_A2B_cycle_loss_valid = np.min(A2B2A_cycle_loss_list_valid)
-# lowest_B2A_cycle_loss_valid = np.min(B2A2B_cycle_loss_list_valid)
-# lowest_A2B_cycle_loss_valid_index = np.where(
-#     A2B2A_cycle_loss_list_valid == lowest_A2B_cycle_loss_valid)
-# lowest_B2A_cycle_loss_valid_index = np.where(
-#     B2A2B_cycle_loss_list_valid == lowest_B2A_cycle_loss_valid)
+# Choosing the epoch with the lowest cycle loss valid to plot the result
+lowest_A2B_cycle_loss_valid = np.min(A2B2A_cycle_loss_list_valid)
+lowest_B2A_cycle_loss_valid = np.min(B2A2B_cycle_loss_list_valid)
+lowest_A2B_cycle_loss_valid_index = np.where(
+    A2B2A_cycle_loss_list_valid == lowest_A2B_cycle_loss_valid)
+lowest_B2A_cycle_loss_valid_index = np.where(
+    B2A2B_cycle_loss_list_valid == lowest_B2A_cycle_loss_valid)
 
-# # Choosing the epoch with the lowest generator loss valid to plot the result
-# lowest_A2B_g_loss_valid = np.min(A2B_g_loss_list_valid)
-# lowest_B2A_g_loss_valid = np.min(B2A_g_loss_list_valid)
-# lowest_A2B_g_loss_list_valid_index = np.where(
-#     A2B_g_loss_list_valid == lowest_A2B_g_loss_valid)
-# lowest_B2A_g_loss_list_valid_index = np.where(
-#     B2A_g_loss_list_valid == lowest_B2A_g_loss_valid)
+# Choosing the epoch with the lowest generator loss valid to plot the result
+lowest_A2B_g_loss_valid = np.min(A2B_g_loss_list_valid)
+lowest_B2A_g_loss_valid = np.min(B2A_g_loss_list_valid)
+lowest_A2B_g_loss_list_valid_index = np.where(
+    A2B_g_loss_list_valid == lowest_A2B_g_loss_valid)
+lowest_B2A_g_loss_list_valid_index = np.where(
+    B2A_g_loss_list_valid == lowest_B2A_g_loss_valid)
 
-# # Choosing the epoch with the lowest discriminator loss valid to plot the result
-# lowest_A2B_d_loss_valid = np.min(A_d_loss_list_valid)
-# lowest_B2A_d_loss_valid = np.min(B_d_loss_list_valid)
-# lowest_A2B_d_loss_list_valid_index = np.where(
-#     A_d_loss_list_valid == lowest_A2B_d_loss_valid)
-# lowest_B2A_d_loss_list_valid_index = np.where(
-#     B_d_loss_list_valid == lowest_B2A_d_loss_valid)
+# Choosing the epoch with the lowest discriminator loss valid to plot the result
+lowest_A2B_d_loss_valid = np.min(A_d_loss_list_valid)
+lowest_B2A_d_loss_valid = np.min(B_d_loss_list_valid)
+lowest_A2B_d_loss_list_valid_index = np.where(
+    A_d_loss_list_valid == lowest_A2B_d_loss_valid)
+lowest_B2A_d_loss_list_valid_index = np.where(
+    B_d_loss_list_valid == lowest_B2A_d_loss_valid)
 
-# # Choosing the epoch with the lowest identity loss valid to plot the result
-# lowest_A2B_id_loss_valid = np.min(A2A_id_loss_list_valid)
-# lowest_B2B_id_loss_valid = np.min(B2B_id_loss_list_valid)
-# lowest_A2B_id_loss_list_valid_index = np.where(
-#     A2A_id_loss_list_valid == lowest_A2B_id_loss_valid)
-# lowest_B2B_id_loss_list_valid_index = np.where(
-#     B2B_id_loss_list_valid == lowest_B2B_id_loss_valid)
+# Choosing the epoch with the lowest identity loss valid to plot the result
+lowest_A2B_id_loss_valid = np.min(A2A_id_loss_list_valid)
+lowest_B2B_id_loss_valid = np.min(B2B_id_loss_list_valid)
+lowest_A2B_id_loss_list_valid_index = np.where(
+    A2A_id_loss_list_valid == lowest_A2B_id_loss_valid)
+lowest_B2B_id_loss_list_valid_index = np.where(
+    B2B_id_loss_list_valid == lowest_B2B_id_loss_valid)
 
-# # Do the same thing with psnr and ssim, but with the highest value
-# highest_ssim_A2B = np.max(ssim_A2B_list)
-# highest_psnr_A2B = np.max(psnr_A2B_list)
-# highest_ssim_B2A = np.max(ssim_B2A_list)
-# highest_psnr_B2A = np.max(psnr_B2A_list)
-# highest_ssim_A2B_index = np.where(ssim_A2B_list == highest_ssim_A2B)
-# highest_psnr_A2B_index = np.where(psnr_A2B_list == highest_psnr_A2B)
-# highest_ssim_B2A_index = np.where(ssim_B2A_list == highest_ssim_B2A)
-# highest_psnr_B2A_index = np.where(psnr_B2A_list == highest_psnr_B2A)
+# Do the same thing with psnr and ssim, but with the highest value
+highest_ssim_A2B = np.max(ssim_A2B_list)
+highest_psnr_A2B = np.max(psnr_A2B_list)
+highest_ssim_B2A = np.max(ssim_B2A_list)
+highest_psnr_B2A = np.max(psnr_B2A_list)
+highest_ssim_A2B_index = np.where(ssim_A2B_list == highest_ssim_A2B)
+highest_psnr_A2B_index = np.where(psnr_A2B_list == highest_psnr_A2B)
+highest_ssim_B2A_index = np.where(ssim_B2A_list == highest_ssim_B2A)
+highest_psnr_B2A_index = np.where(psnr_B2A_list == highest_psnr_B2A)
 
 
 # # run
@@ -568,9 +538,9 @@ if test_args.loss_method == 'all':
     for A, B in zip(A_dataset_test, B_dataset_test):
         B2A, B2A2B = sample_B2A(B)
         for B_i, B2A_i, B2A2B_i, A_i in zip(B, B2A, B2A2B, A):
-            # psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
-            #                                 save_dir, B_img_paths_test[i])
-            psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
+            psnr, ssim = ev.plot_images_B2A(B_i, B2A_i, A_i,
+                                            save_dir, B_img_paths_test[i])
+            # psnr, ssim = ev.compute_psnr_ssim(B2A_i.numpy(), A_i.numpy())
             if best_psnr is None or psnr > best_psnr:
                 best_psnr = psnr
                 _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
@@ -707,6 +677,9 @@ if test_args.loss_method == 'all':
             i += 1
 else:
     if test_args.loss_method == 'adversarial':
+        print(checkDir + f'/ckpt-{lowest_A2B_adversarial_loss_valid_index[0][0]}')
+        # wait 10 sec
+        time.sleep(10)
         tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
             args.experiment_dir, args.method, 'checkpoints')).restore(checkDir +
                                                                       f'/ckpt-{lowest_A2B_adversarial_loss_valid_index[0][0]}')
@@ -738,7 +711,9 @@ else:
 
         tl.Checkpoint(dict(G_A2B=G_A2B, G_B2A=G_B2A), py.join(
             args.experiment_dir, args.method, 'checkpoints')).restore()
-
+    save_dir = py.join(args.experiment_dir, args.method,
+                    f'samples_testing_{test_args.loss_method}', 'A2B')
+    py.mkdir(save_dir)
     i = 0
     best_psnr = None
     best_ssim = None
