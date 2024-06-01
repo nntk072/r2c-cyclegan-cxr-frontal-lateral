@@ -19,7 +19,7 @@ def _get_norm_layer(norm):
     elif norm == 'layer_norm':
         return keras.layers.LayerNormalization
 
-
+"""
 def ResnetGenerator(input_shape=(256, 256, 3),
                     output_channels=3,
                     dim=64,
@@ -42,7 +42,7 @@ def ResnetGenerator(input_shape=(256, 256, 3),
         h = Norm()(h)
 
         return keras.layers.add([x, h])
-
+    
     # 0
     h = inputs = keras.Input(shape=input_shape)
 
@@ -78,8 +78,71 @@ def ResnetGenerator(input_shape=(256, 256, 3),
     h = tf.tanh(h)
 
     return keras.Model(inputs=inputs, outputs=h)
+"""
 
+def ResnetGenerator(input_shape=(256, 256, 3),
+                    output_channels=3,
+                    dim=64,
+                    n_downsamplings=2,
+                    n_blocks=9,
+                    norm='instance_norm'):
+    # Norm = _get_norm_layer(norm)
 
+    def _residual_block(x):
+        dim = x.shape[-1]
+        h = x
+
+        h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+        h = keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
+        # h = Norm()(h)
+        # h = tf.nn.relu(h)
+        h = tf.nn.tanh(h)
+
+        h = tf.pad(h, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+        h = keras.layers.Conv2D(dim, 3, padding='valid', use_bias=False)(h)
+        # h = Norm()(h)
+
+        return keras.layers.add([x, h])
+
+    # 0
+    h = inputs = keras.Input(shape=input_shape)
+
+    # 1
+    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
+    h = keras.layers.Conv2D(dim, 7, padding='valid', use_bias=False)(h)
+    # h = Norm()(h)
+    # h = tf.nn.relu(h)
+    h = tf.nn.tanh(h)
+
+    # 2
+    for _ in range(n_downsamplings):
+        dim *= 2
+        h = keras.layers.Conv2D(
+            dim, 3, strides=2, padding='same', use_bias=False)(h)
+        # h = Norm()(h)
+        # h = tf.nn.relu(h)
+        h = tf.nn.tanh(h)
+
+    # 3
+    for _ in range(n_blocks):
+        h = _residual_block(h)
+
+    # 4
+    for _ in range(n_downsamplings):
+        dim //= 2
+        h = keras.layers.Conv2DTranspose(
+            dim, 3, strides=2, padding='same', use_bias=False)(h)
+        # h = Norm()(h)
+        # h = tf.nn.relu(h)
+        h = tf.nn.tanh(h)
+
+    # 5
+    h = tf.pad(h, [[0, 0], [3, 3], [3, 3], [0, 0]], mode='REFLECT')
+    h = keras.layers.Conv2D(output_channels, 7, padding='valid')(h)
+    h = tf.tanh(h)
+
+    return keras.Model(inputs=inputs, outputs=h)
+"""
 def ConvDiscriminator(input_shape=(256, 256, 3),
                       dim=64,
                       n_downsamplings=3,
@@ -112,7 +175,42 @@ def ConvDiscriminator(input_shape=(256, 256, 3),
     h = keras.layers.Conv2D(1, 4, strides=1, padding='same')(h)
 
     return keras.Model(inputs=inputs, outputs=h)
+"""
+def ConvDiscriminator(input_shape=(256, 256, 3),
+                      dim=64,
+                      n_downsamplings=3,
+                      norm='instance_norm'):
+    dim_ = dim
+    Norm = _get_norm_layer(norm)
 
+    # 0
+    h = inputs = keras.Input(shape=input_shape)
+
+    # 1
+    h = keras.layers.Conv2D(dim, 4, strides=2, padding='same')(h)
+    # h = tf.nn.leaky_relu(h, alpha=0.2)
+    h = tf.nn.tanh(h)
+
+    for _ in range(n_downsamplings - 1):
+        dim = min(dim * 2, dim_ * 8)
+        h = keras.layers.Conv2D(
+            dim, 4, strides=2, padding='same', use_bias=False)(h)
+        # h = Norm()(h)
+        # h = tf.nn.leaky_relu(h, alpha=0.2)
+        h = tf.nn.tanh(h)
+
+    # 2
+    dim = min(dim * 2, dim_ * 8)
+    h = keras.layers.Conv2D(
+        dim, 4, strides=1, padding='same', use_bias=False)(h)
+    # h = Norm()(h)
+    # h = tf.nn.leaky_relu(h, alpha=0.2)
+    h = tf.nn.tanh(h)
+
+    # 3
+    h = keras.layers.Conv2D(1, 4, strides=1, padding='same')(h)
+
+    return keras.Model(inputs=inputs, outputs=h)
 
 """
 def OpGenerator(input_shape=(256, 256, 3), q=1):
@@ -427,6 +525,7 @@ def AnotherUNetGenerator(input_shape=(256, 256, 3), n_filters=32, n_classes=3, n
 
 def AnotherUnetDiscriminator(input_shape=(256, 256, 3),
                              filters=[64, 128, 256, 512],
+                             output_channels=3,
                              norm='instance_norm'):
 
     inputs = tf.keras.Input(shape=input_shape)
@@ -517,6 +616,7 @@ def OpUNetGenerator(input_shape=(256, 256, 3),
 
 
 def OpUNetDiscriminator(input_shape=(256, 256, 3),
+                        output_channels=3,
                         norm='instance_norm',
                         target=False,
                         q=1):

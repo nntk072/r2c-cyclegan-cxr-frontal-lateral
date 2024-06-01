@@ -27,11 +27,12 @@ class model:
         self.identity_weight = None
 
         self.filter = None
+        self.single_channel = False
 
     def init(self, len_dataset):
 
         self.filter = self.args.method
-
+        self.single_channel = self.args.single_channel
         self.cycle_weights = self.args.cycle_loss_weight
         self.identity_weight = self.args.identity_loss_weight
         self.G_lr_scheduler = module.LinearDecay(
@@ -45,52 +46,73 @@ class model:
 
         # Creating models.
         if self.args.method == 'operational' or self.args.method == 'operational_unet':
-            self.set_G_A2B(input_shape=(
-                self.args.crop_size, self.args.crop_size, 3), q=self.args.q)
-            self.set_G_B2A(input_shape=(
-                self.args.crop_size, self.args.crop_size, 3), q=self.args.q)
-            self.set_D_A(input_shape=(
-                self.args.crop_size, self.args.crop_size, 3), q=self.args.q)
-            self.set_D_B(input_shape=(
-                self.args.crop_size, self.args.crop_size, 3), q=self.args.q)
-        elif self.args.method == 'convolutional' or self.args.method == 'unet' or self.args.method == 'anotherunet':
-            self.set_G_A2B(input_shape=(
-                self.args.crop_size, self.args.crop_size, 3), q=None)
-            self.set_G_B2A(input_shape=(
-                self.args.crop_size, self.args.crop_size, 3), q=None)
-            self.set_D_A(input_shape=(
-                self.args.crop_size, self.args.crop_size, 3), q=None)
-            self.set_D_B(input_shape=(
-                self.args.crop_size, self.args.crop_size, 3), q=None)
-
+            if self.args.single_channel:
+                self.set_G_A2B(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 1), q=self.args.q, output_channels = 1)
+                self.set_G_B2A(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 1), q=self.args.q, output_channels = 1)
+                self.set_D_A(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 1), q=self.args.q)
+                self.set_D_B(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 1), q=self.args.q)
+            else:
+                self.set_G_A2B(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 3), q=self.args.q)
+                self.set_G_B2A(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 3), q=self.args.q)
+                self.set_D_A(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 3), q=self.args.q)
+                self.set_D_B(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 3), q=self.args.q)
+        elif self.args.method == 'convolutional' or self.args.method == 'unet' or self.args.method == 'anotherunet' or self.args.method == 'transunet':
+            if self.args.single_channel:
+                self.set_G_A2B(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 1), q=None, output_channels = 1)
+                self.set_G_B2A(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 1), q=None, output_channels = 1)
+                self.set_D_A(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 1), q=None)
+                self.set_D_B(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 1), q=None)
+            else:
+                self.set_G_A2B(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 3), q=None)
+                self.set_G_B2A(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 3), q=None)
+                self.set_D_A(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 3), q=None)
+                self.set_D_B(input_shape=(
+                    self.args.crop_size, self.args.crop_size, 3), q=None)
         else:
             print('Undefined filtering method!')
 
-    def set_G_A2B(self, input_shape, q):
+    def set_G_A2B(self, input_shape, q, output_channels = 3):
         if self.args.method == 'operational':
-            self.G_A2B = module.OpGenerator(input_shape=input_shape, q=q)
+            self.G_A2B = module.OpGenerator(input_shape=input_shape, q=q, output_channels = output_channels)
         elif self.args.method == 'convolutional':
-            self.G_A2B = module.ResnetGenerator(input_shape=input_shape)
+            self.G_A2B = module.ResnetGenerator(input_shape=input_shape, output_channels = output_channels)
         elif self.args.method == 'unet':
+            self.G_A2B = module.UNetGenerator(input_shape=input_shape, output_channels = output_channels)
+        elif self.args.method == 'anotherunet':
+            self.G_A2B = module.AnotherUNetGenerator(input_shape=input_shape, n_classes=output_channels)
+        elif self.args.method == 'transunet':
             self.G_A2B = module.UNetGenerator(input_shape=input_shape)
-        elif self.args.method == 'anotherunet':
-            self.G_A2B = module.AnotherUNetGenerator(input_shape=input_shape)
-        elif self.args.method == 'operational_unet':
-            self.G_A2B = module.OpUNetGenerator(input_shape=input_shape, q=q)
         else:
             print('Undefined filtering method!')
 
-    def set_G_B2A(self, input_shape, q):
+    def set_G_B2A(self, input_shape, q, output_channels = 3):
         if self.args.method == 'operational':
-            self.G_B2A = module.OpGenerator(input_shape=input_shape, q=q)
+            self.G_B2A = module.OpGenerator(input_shape=input_shape, q=q, output_channels = output_channels)
         elif self.args.method == 'convolutional':
-            self.G_B2A = module.ResnetGenerator(input_shape=input_shape)
+            self.G_B2A = module.ResnetGenerator(input_shape=input_shape, output_channels = output_channels)
         elif self.args.method == 'unet':
-            self.G_B2A = module.UNetGenerator(input_shape=input_shape)
+            self.G_B2A = module.UNetGenerator(input_shape=input_shape, output_channels = output_channels)
         elif self.args.method == 'anotherunet':
-            self.G_B2A = module.AnotherUNetGenerator(input_shape=input_shape)
+            self.G_B2A = module.AnotherUNetGenerator(input_shape=input_shape, n_classes=output_channels)
         elif self.args.method == 'operational_unet':
             self.G_B2A = module.OpUNetGenerator(input_shape=input_shape, q=q)
+        elif self.args.method == 'transunet':
+            self.G_B2A = module.UNetGenerator(input_shape=input_shape)
         else:
             print('Undefined filtering method!')
 
@@ -106,6 +128,8 @@ class model:
             self.D_A = module.ConvDiscriminator(input_shape=input_shape)
         elif self.args.method == 'operational_unet':
             self.D_A = module.OpUNetDiscriminator(input_shape=input_shape, q=q)
+        elif self.args.method == 'transunet':
+            self.D_A = module.ConvDiscriminator(input_shape=input_shape)
         else:
             print('Undefined filtering method!')
 
@@ -121,6 +145,8 @@ class model:
             self.D_B = module.ConvDiscriminator(input_shape=input_shape)
         elif self.filter == 'operational_unet':
             self.D_B = module.OpUNetDiscriminator(input_shape=input_shape, q=q)
+        elif self.filter == 'transunet':
+            self.D_B = module.ConvDiscriminator(input_shape=input_shape)
         else:
             print('Undefined filtering method!')
 

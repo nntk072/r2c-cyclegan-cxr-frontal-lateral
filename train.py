@@ -41,9 +41,10 @@ py.arg('--gradient_penalty_weight', type=float, default=10.0)
 py.arg('--cycle_loss_weight', type=float, default=10.0)
 py.arg('--identity_loss_weight', type=float, default=0.0)
 py.arg('--pool_size', type=int, default=50)  # pool size to store fake samples
+py.arg('--single_channel', type=bool, default=False)
 # Order of the operational layer (q parameter).
 py.arg('--q', type=int, default=3)
-py.arg('--method', help='convolutional, operational, unet, anotherunet, operational_unet',
+py.arg('--method', help='convolutional, operational, unet, anotherunet, operational_unet, transunet',
        default='convolutional')
 args = py.args()
 
@@ -107,13 +108,13 @@ A_img_paths = py.glob(
 B_img_paths = py.glob(
     py.join(args.datasets_dir, args.dataset, 'trainB'), '*.jpg')
 A_B_dataset, len_dataset = data.make_zip_dataset(
-    A_img_paths, B_img_paths, args.batch_size, args.load_size, args.crop_size, training=True, repeat=False)
+    A_img_paths, B_img_paths, args.batch_size, args.load_size, args.crop_size, training=True, repeat=False, one_channel=args.single_channel)
 
 A2B_pool = data.ItemPool(args.pool_size)
 B2A_pool = data.ItemPool(args.pool_size)
 
 A_B_dataset_test, _ = data.make_zip_dataset(
-    A_img_paths, B_img_paths, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False)
+    A_img_paths, B_img_paths, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False, one_channel=args.single_channel)
 
 A_img_paths_valid = py.glob(
     py.join(args.datasets_dir, args.dataset, 'validA'), '*.jpg'
@@ -122,10 +123,10 @@ B_img_paths_valid = py.glob(
     py.join(args.datasets_dir, args.dataset, 'validB'), '*.jpg'
 )
 A_B_dataset_valid, valid_len_dataset = data.make_zip_dataset(
-    A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False)
+    A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False, one_channel=args.single_channel)
 
 A_B_dataset_valid_test, valid_len_dataset_test = data.make_zip_dataset(
-    A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False)
+    A_img_paths_valid, B_img_paths_valid, args.batch_size, args.load_size, args.crop_size, training=False, repeat=False, shuffle=False, one_channel=args.single_channel)
 # ==============================================================================
 # =                                   models                                   =
 # ==============================================================================
@@ -215,7 +216,7 @@ with train_summary_writer.as_default():
 
         # train for an epoch
         for A, B in tqdm.tqdm(A_B_dataset, desc='Inner Epoch Loop', total=len_dataset):
-
+        # for A, B in tqdm.tqdm(A_B_dataset.take(15), desc='Inner Epoch Loop', total=len_dataset):
             G_loss_dict, D_loss_dict = train_step(A, B)
 
             # # summary
@@ -245,7 +246,7 @@ with train_summary_writer.as_default():
 
         i = 0
         for A, B in tqdm.tqdm(A_B_dataset_valid, desc='Valid Epoch Loop', total=valid_len_dataset):
-            # for A, B in tqdm.tqdm(A_B_dataset_valid.take(15), desc='Valid Epoch Loop', total=valid_len_dataset):
+        # for A, B in tqdm.tqdm(A_B_dataset_valid.take(15), desc='Valid Epoch Loop', total=valid_len_dataset):
             A2B, B2A, valid_G_results = model.valid_G(A, B)
             valid_D_results = model.valid_D(A, B, A2B, B2A)
             A2B_g_loss_valid.append(valid_G_results['A2B_g_loss_valid'])
@@ -281,6 +282,7 @@ with train_summary_writer.as_default():
         i_train = 0
         iterations, ssim_value_A2B, psnr_value_A2B, ssim_value_B2A, psnr_value_B2A = [], [], [], [], []
         for A, B in tqdm.tqdm(A_B_dataset_test, desc='Training Epoch Loop - SSIM_PSNR', total=len_dataset):
+        # for A, B in tqdm.tqdm(A_B_dataset_test.take(15), desc='Training Epoch Loop - SSIM_PSNR', total=len_dataset):
             # Compute the SSIM and the PSNR of the images
             A2B, B2A, _, _ = model.sample(A, B)
             psnr_A2B, ssim_A2B = ev.compute_psnr_ssim(
@@ -305,6 +307,7 @@ with train_summary_writer.as_default():
         iterations_valid, ssim_A2B_value_valid, psnr_A2B_value_valid, ssim_B2A_value_valid, psnr_B2A_value_valid = [], [], [], [], []
         i_valid = 0
         for A, B in tqdm.tqdm(A_B_dataset_valid_test, desc='Valid Epoch Loop - SSIM_PSNR', total=valid_len_dataset):
+        # for A, B in tqdm.tqdm(A_B_dataset_valid_test.take(15), desc='Valid Epoch Loop - SSIM_PSNR', total=valid_len_dataset):
             A2B, B2A, _, _ = model.sample(A, B)
             psnr_A2B, ssim_A2B = ev.compute_psnr_ssim(
                 B[0].numpy(), A2B[0].numpy())

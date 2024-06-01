@@ -89,7 +89,9 @@ def disk_image_batch_dataset(img_paths,
                              filter_after_map=False,
                              shuffle=True,
                              shuffle_buffer_size=None,
-                             repeat=None):
+                             repeat=None,
+                             one_channel=False
+                             ):
     """Batch dataset of disk image for PNG and JPEG.
 
     Parameters
@@ -105,7 +107,11 @@ def disk_image_batch_dataset(img_paths,
 
     def parse_fn(path, *label):
         img = tf.io.read_file(path)
-        img = tf.image.decode_png(img, 3)  # fix channels to 3
+        if one_channel:
+            img = tf.image.decode_png(img, 1)
+        else:
+            img = tf.image.decode_png(img, 3)
+        # img = tf.image.decode_png(img, 3)  # fix channels to 3
         # img = tf.image.decode_png(img, 1)  # fix channels to 1
         return (img,) + label
 

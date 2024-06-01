@@ -13,6 +13,7 @@ import scipy.io
 import scipy
 import torch
 import samscore
+import imageio
 sys.path.insert(0, '../..')
 
 SAMScore_Evaluation = samscore.SAMScore(model_type = "vit_l" )
@@ -20,6 +21,11 @@ def compare_psnr(image1, image2):
     image1 = im.im2uint(image1)
     image2 = im.im2uint(image2)
     # psnr_value = psnr(image1, image2)
+    # check if 256x256x1, convert to 256x256
+    if len(image1.shape) == 3 and image1.shape[2] == 1:
+        image1 = image1[:, :, 0]
+    if len(image2.shape) == 3 and image2.shape[2] == 1:
+        image2 = image2[:, :, 0]
     # Setting up the data range from 0 to 255
     psnr_value = psnr(image1, image2, data_range=255)
     return psnr_value
@@ -37,10 +43,17 @@ def compare_psnr_mathematical(image1, image2):
     return psnr_value
 
 def compare_ssim(image1, image2):
+    # Check image shape
     image1 = im.im2uint(image1)
     image2 = im.im2uint(image2)
-
     # ssim_value = ssim(image1, image2)
+
+    # check if 256x256x1, convert to 256x256
+    if len(image1.shape) == 3 and image1.shape[2] == 1:
+        image1 = image1[:, :, 0]
+    if len(image2.shape) == 3 and image2.shape[2] == 1:
+        image2 = image2[:, :, 0]
+ 
     # Setting up the data range from 0 to 255
     ssim_value = ssim(image1, image2, data_range=255)
     
