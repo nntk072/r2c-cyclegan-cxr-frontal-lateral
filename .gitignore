@@ -1,12 +1,20 @@
+# Byte-compiled / optimized / DLL files
+.vscode
 *.pyc
 __pycache__/
-/datasets/
-/output/
+
+# Data
 datasets.zip
-.vscode
 datasets_paired.zip
+
+# Model Plot
 D_A.png
 D_B.png
 G_A2B.png
 G_B2A.png
+
+# Directory plot
+/datasets/
+/output/
 /weights/
+/examples/

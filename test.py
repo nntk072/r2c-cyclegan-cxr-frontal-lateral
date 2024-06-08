@@ -18,12 +18,13 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # ==============================================================================
 
 py.arg('--experiment_dir', default='output/')
-py.arg('--batch_size', type=int, default=32)
+py.arg('--batch_size', type=int, default=1)
 py.arg('--method', help='convolutional, operational, unet, anotherunet, operational_unet',
        default='convolutional')
 py.arg('--loss_method', help='none, adversarial, total, cycle, generator, discriminator, identity, all',
        default='all')
 py.arg('--evaluation_method', help='none, psnr, ssim, both', default='both')
+py.arg('--epoch_limit', type=int, default=1000)
 test_args = py.args()
 args = py.args_from_yaml(
     py.join(test_args.experiment_dir, test_args.method, 'settings.yml'))
@@ -64,30 +65,86 @@ B_dataset_test = data.make_dataset(B_img_paths_test, args.batch_size, args.load_
 method = args.method
 # model
 if args.method == 'convolutional':
-    G_A2B = module.ResnetGenerator(
-        input_shape=(args.crop_size, args.crop_size, 3))
-    G_B2A = module.ResnetGenerator(
-        input_shape=(args.crop_size, args.crop_size, 3))
+    # G_A2B = module.ResnetGenerator(
+    #     input_shape=(args.crop_size, args.crop_size, 3))
+    # G_B2A = module.ResnetGenerator(
+    #     input_shape=(args.crop_size, args.crop_size, 3))
+    
+    # Check if single channel from args to set the input_shape
+    if args.single_channel:
+        G_A2B = module.ConvGenerator(
+            input_shape=(args.crop_size, args.crop_size, 1))
+        G_B2A = module.ConvGenerator(
+            input_shape=(args.crop_size, args.crop_size, 1))
+    else:
+        G_A2B = module.ConvGenerator(
+            input_shape=(args.crop_size, args.crop_size, 3))
+        G_B2A = module.ConvGenerator(
+            input_shape=(args.crop_size, args.crop_size, 3))
 elif args.method == 'operational':
-    G_A2B = module.OpGenerator(input_shape=(
-        args.crop_size, args.crop_size, 3), q=args.q)
-    G_B2A = module.OpGenerator(input_shape=(
-        args.crop_size, args.crop_size, 3), q=args.q)
+    # G_A2B = module.OpGenerator(input_shape=(
+    #     args.crop_size, args.crop_size, 3), q=args.q)
+    # G_B2A = module.OpGenerator(input_shape=(
+    #     args.crop_size, args.crop_size, 3), q=args.q)
+    # Check if single channel from args to set the input_shape
+    if args.single_channel:
+        G_A2B = module.OpGenerator(input_shape=(
+            args.crop_size, args.crop_size, 1), q=args.q)
+        G_B2A = module.OpGenerator(input_shape=(
+            args.crop_size, args.crop_size, 1), q=args.q)
+    else:
+        G_A2B = module.OpGenerator(input_shape=(
+            args.crop_size, args.crop_size, 3), q=args.q)
+        G_B2A = module.OpGenerator(input_shape=(
+            args.crop_size, args.crop_size, 3), q=args.q)
 elif args.method == 'unet':
-    G_A2B = module.UNetGenerator(
-        input_shape=(args.crop_size, args.crop_size, 3))
-    G_B2A = module.UNetGenerator(
-        input_shape=(args.crop_size, args.crop_size, 3))
+    # G_A2B = module.UNetGenerator(
+    #     input_shape=(args.crop_size, args.crop_size, 3))
+    # G_B2A = module.UNetGenerator(
+    #     input_shape=(args.crop_size, args.crop_size, 3))
+    # Check if single channel from args to set the input_shape
+    if args.single_channel:
+        G_A2B = module.UNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 1))
+        G_B2A = module.UNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 1))
+    else:
+        G_A2B = module.UNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 3))
+        G_B2A = module.UNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 3))
 elif args.method == 'anotherunet':
-    G_A2B = module.AnotherUNetGenerator(
-        input_shape=(args.crop_size, args.crop_size, 3))
-    G_B2A = module.AnotherUNetGenerator(
-        input_shape=(args.crop_size, args.crop_size, 3))
+    # G_A2B = module.AnotherUNetGenerator(
+    #     input_shape=(args.crop_size, args.crop_size, 3))
+    # G_B2A = module.AnotherUNetGenerator(
+    #     input_shape=(args.crop_size, args.crop_size, 3))
+    # Check if single channel from args to set the input_shape
+    if args.single_channel:
+        G_A2B = module.AnotherUNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 1))
+        G_B2A = module.AnotherUNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 1))
+    else:
+        G_A2B = module.AnotherUNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 3))
+        G_B2A = module.AnotherUNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 3))
 elif args.method == 'operational_unet':
-    G_A2B = module.OpUNetGenerator(
-        input_shape=(args.crop_size, args.crop_size, 3), q=args.q)
-    G_B2A = module.OpUNetGenerator(
-        input_shape=(args.crop_size, args.crop_size, 3), q=args.q)
+    # G_A2B = module.OpUNetGenerator(
+    #     input_shape=(args.crop_size, args.crop_size, 3), q=args.q)
+    # G_B2A = module.OpUNetGenerator(
+    #     input_shape=(args.crop_size, args.crop_size, 3), q=args.q)
+    # Check if single channel from args to set the input_shape
+    if args.single_channel:
+        G_A2B = module.OpUNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 1), q=args.q)
+        G_B2A = module.OpUNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 1), q=args.q)
+    else:
+        G_A2B = module.OpUNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 3), q=args.q)
+        G_B2A = module.OpUNetGenerator(
+            input_shape=(args.crop_size, args.crop_size, 3), q=args.q)
 else:
     raise NotImplementedError
 A2B_g_loss_list = np.array([])
@@ -103,7 +160,8 @@ psnr_A2B_list = np.array([])
 ssim_B2A_list = np.array([])
 psnr_B2A_list = np.array([])
 ep_list = np.array([])
-for ep in range(0, 1000):
+
+for ep in range(0, args.epoch_limit):
     A2B_g_loss = np.load(
         f'output/{method}/plot_data/training/loss_A2B_g_loss_{ep}.npy')
     B2A_g_loss = np.load(
@@ -164,7 +222,7 @@ ssim_B2A_list_valid = np.array([])
 psnr_B2A_list_valid = np.array([])
 
 ep_list_valid = np.array([])
-for ep in range(0, 1000):  # the name of the folder is validation
+for ep in range(0, args.epoch_limit):
     A2B_g_loss = np.load(
         f'output/{method}/plot_data/validation/loss_A2B_g_loss_{ep}.npy')
     B2A_g_loss = np.load(
@@ -675,6 +733,9 @@ if test_args.loss_method == 'all':
                 _, _ = ev.plot_images_B2A(B_i, B2A_i, A_i,
                                           save_dir, B_img_paths_test[i], best_ssim=True)
             i += 1
+elif test_args.loss_method == 'none':
+    # Just pass
+    pass  
 else:
     if test_args.loss_method == 'adversarial':
         print(checkDir + f'/ckpt-{lowest_A2B_adversarial_loss_valid_index[0][0]}')

@@ -4,6 +4,8 @@ import tf2gan as gan
 import functools
 import module
 
+import tensorflow_datasets as tfds
+from examples.tensorflow_examples.models.pix2pix import pix2pix
 
 class model:
     def __init__(self, args):
@@ -32,7 +34,12 @@ class model:
     def init(self, len_dataset):
 
         self.filter = self.args.method
-        self.single_channel = self.args.single_channel
+        # Check if single channel is having in args
+        if hasattr(self.args, 'single_channel'):
+            self.single_channel = self.args.single_channel
+        else:
+            self.single_channel = False
+            self.args.single_channel = False
         self.cycle_weights = self.args.cycle_loss_weight
         self.identity_weight = self.args.identity_loss_weight
         self.G_lr_scheduler = module.LinearDecay(
@@ -92,7 +99,8 @@ class model:
         elif self.args.method == 'convolutional':
             self.G_A2B = module.ResnetGenerator(input_shape=input_shape, output_channels = output_channels)
         elif self.args.method == 'unet':
-            self.G_A2B = module.UNetGenerator(input_shape=input_shape, output_channels = output_channels)
+            # self.G_A2B = module.UNetGenerator(input_shape=input_shape, output_channels = output_channels)
+            self.G_A2B = pix2pix.unet_generator(3, norm_type='instancenorm')
         elif self.args.method == 'anotherunet':
             self.G_A2B = module.AnotherUNetGenerator(input_shape=input_shape, n_classes=output_channels)
         elif self.args.method == 'transunet':
@@ -106,7 +114,8 @@ class model:
         elif self.args.method == 'convolutional':
             self.G_B2A = module.ResnetGenerator(input_shape=input_shape, output_channels = output_channels)
         elif self.args.method == 'unet':
-            self.G_B2A = module.UNetGenerator(input_shape=input_shape, output_channels = output_channels)
+            # self.G_B2A = module.UNetGenerator(input_shape=input_shape, output_channels = output_channels)
+            self.G_B2A = pix2pix.unet_generator(3, norm_type='instancenorm')
         elif self.args.method == 'anotherunet':
             self.G_B2A = module.AnotherUNetGenerator(input_shape=input_shape, n_classes=output_channels)
         elif self.args.method == 'operational_unet':
@@ -122,7 +131,8 @@ class model:
         elif self.args.method == 'convolutional':
             self.D_A = module.ConvDiscriminator(input_shape=input_shape)
         elif self.args.method == 'unet':
-            self.D_A = module.UNetDiscriminator(input_shape=input_shape)
+            # self.D_A = module.UNetDiscriminator(input_shape=input_shape)
+            self.D_A = pix2pix.discriminator(norm_type='instancenorm', target=False)
         elif self.args.method == 'anotherunet':
             # self.D_A = module.AnotherUnetDiscriminator(input_shape=input_shape)
             self.D_A = module.ConvDiscriminator(input_shape=input_shape)
@@ -139,7 +149,8 @@ class model:
         elif self.filter == 'convolutional':
             self.D_B = module.ConvDiscriminator(input_shape=input_shape)
         elif self.filter == 'unet':
-            self.D_B = module.UNetDiscriminator(input_shape=input_shape)
+            # self.D_B = module.UNetDiscriminator(input_shape=input_shape)
+            self.D_B = pix2pix.discriminator(norm_type='instancenorm', target=False)
         elif self.filter == 'anotherunet':
             # self.D_B = module.AnotherUnetDiscriminator(input_shape=input_shape)
             self.D_B = module.ConvDiscriminator(input_shape=input_shape)

@@ -39,9 +39,16 @@ Author: [Jun-Yan Zhu ](https://people.eecs.berkeley.edu/~junyanz/) *et al.*
   conda activate r2c-gan
   conda install tensorflow-gpu=2.4.1
   conda install scikit-image tqdm scikit-learn pydot
+  conda install scikit-learn-intelex
   conda install -c conda-forge oyaml
   pip install tensorflow-addons==0.13.0
-  pip install numpy==1.19.2
+  pip install matplotlib
+  pip install opencv-python
+  pip install torch
+  pip install git+https://github.com/ChaoningZhang/MobileSAM.git
+  pip install timm
+  pip install samscore
+  pip install git+https://github.com/facebookresearch/segment-anything.git
   ```
 - Dataset
 

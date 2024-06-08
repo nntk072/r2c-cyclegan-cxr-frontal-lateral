@@ -44,6 +44,7 @@ py.arg('--gradient_penalty_weight', type=float, default=10.0)
 py.arg('--cycle_loss_weight', type=float, default=10.0)
 py.arg('--identity_loss_weight', type=float, default=0.0)
 py.arg('--pool_size', type=int, default=50)  # pool size to store fake samples
+py.arg('--single_channel', type=bool, default=False)
 # Order of the operational layer (q parameter).
 py.arg('--q', type=int, default=3)
 py.arg('--method', help='convolutional, operational, unet, anotherunet',

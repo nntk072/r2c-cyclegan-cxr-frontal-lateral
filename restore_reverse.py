@@ -23,33 +23,18 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # ==============================================================================
 
 # py.arg('--dataset', default='CheXpert-v1.0-small')
-py.arg('--dataset', default='')
-py.arg('--plot_data_dir', default='plot_data')
-py.arg('--datasets_dir', default='datasets')
-py.arg('--load_size', type=int, default=286)  # load image to this size
-py.arg('--crop_size', type=int, default=256)  # then crop to this size
+py.arg('--experiment_dir', default='output/')
 py.arg('--batch_size', type=int, default=1)
-# py.arg('--epochs', type=int, default=200)
-py.arg('--epochs', type=int, default=1000)
-# epoch to start decaying learning rate
-py.arg('--epoch_decay', type=int, default=100)
-py.arg('--lr', type=float, default=0.0002)
-py.arg('--beta_1', type=float, default=0.5)
-py.arg('--adversarial_loss_mode', default='lsgan',
-       choices=['gan', 'hinge_v1', 'hinge_v2', 'lsgan', 'wgan'])
-# py.arg('--gradient_penalty_mode', default='none', choices=['none', 'dragan', 'wgan-gp'])
-py.arg('--gradient_penalty_mode', default='wgan-gp',
-       choices=['none', 'dragan', 'wgan-gp'])
-py.arg('--gradient_penalty_weight', type=float, default=10.0)
-py.arg('--cycle_loss_weight', type=float, default=10.0)
-py.arg('--identity_loss_weight', type=float, default=0.0)
-py.arg('--pool_size', type=int, default=50)  # pool size to store fake samples
-# Order of the operational layer (q parameter).
-py.arg('--q', type=int, default=3)
-py.arg('--method', help='convolutional, operational, unet, anotherunet',
+py.arg('--method', help='convolutional, operational, unet, anotherunet, operational_unet',
        default='convolutional')
-args = py.args()
-
+py.arg('--loss_method', help='none, adversarial, total, cycle, generator, discriminator, identity, all',
+       default='all')
+py.arg('--evaluation_method', help='none, psnr, ssim, both', default='both')
+py.arg('--epoch_limit', type=int, default=1000)
+test_args = py.args()
+args = py.args_from_yaml(
+    py.join(test_args.experiment_dir, test_args.method, 'settings.yml'))
+args.__dict__.update(test_args.__dict__)
 # output_dir
 output_dir = py.join('output', args.dataset)
 py.mkdir(output_dir)
